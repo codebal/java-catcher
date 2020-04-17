@@ -1,5 +1,7 @@
 package codebal.catcher;
 
+import codebal.catcher.logger.CcLogger;
+
 import java.util.Date;
 import java.util.function.Supplier;
 

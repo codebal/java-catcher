@@ -1,7 +1,8 @@
-import codebal.catcher.CcData;
-import codebal.catcher.CcLogger;
 import codebal.catcher.Catcher;
+import codebal.catcher.CcData;
 import codebal.catcher.test.ExThread;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -10,11 +11,12 @@ import java.util.Map;
 public class Main {
 
     static Catcher catcher;
-    static public int cacheCount = 0;
+    static public int cacheCreateCount = 0;
 
     public static void main(String[] args) throws Exception {
 
-        System.out.println("Catcher Test");
+        log("Catcher Test");
+
 
         Map<String, Object> cacheResource = new HashMap<>();
 
@@ -36,14 +38,17 @@ public class Main {
         );
 
         int count = 0;
-        while(count < 5){
+        while(count < 3){
             ExThread request = new ExThread((id)->{
                 while(true){
                     try{
-                        Thread.sleep((int)(Math.random()*1000) + 1000);
+                        Thread.sleep((int)(Math.random()*1000) + 2000);
                         //Thread.sleep(1000);
-                        String value = getSetCacheData("key1");
-                        CcLogger.debug(Main.class, id + " - 캐시조회 : " + value);
+                        long st = System.currentTimeMillis();
+                        String value = getSetCacheData("key1", id.toString());
+                        long delay = System.currentTimeMillis() - st;
+                        //CcLogger.debug(Main.class, id + " - get cache : " + value);
+                        log(id + " | " + value + " | (delay " + delay + ")");
                     }
                     catch (Exception e){
                         e.printStackTrace();
@@ -77,22 +82,29 @@ public class Main {
 //        }
 
     }
-    static String getSetCacheData(String key){
+    static String getSetCacheData(String key, String id){
         return catcher.getSet(key, ()->{
             try{
                 //Thread.sleep(  (int)(Math.random()*1000*10));
-                int delay = 3000;
+                int delay = 1000;
                 Thread.sleep(delay);
-                CcLogger.debug(Main.class, "캐시생성됨 delay :  " + delay + "");
-                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss");
-                String rtn = cacheCount + " - " + simpleDateFormat.format(System.currentTimeMillis());
-                cacheCount++;
+                //CcLogger.debug(Main.class, "cache created / delay :  " + delay + "");
+                SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+                cacheCreateCount++;
+                String rtn = id + " / cacheCreateCount " + cacheCreateCount + " / " + simpleDateFormat.format(System.currentTimeMillis());
+                log("cache created [" + rtn + "] processing time :  " + delay);
                 return rtn;
             }
             catch(Exception e){
                 return "error";
             }
         }, 5, 100, true, true);
+    }
+
+    static void log(String msg){
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+        String nowTime = simpleDateFormat.format(System.currentTimeMillis());
+        System.out.println(nowTime + " -- " + msg);
     }
 
 //    static String getSetCacheData2(String key, Object value, int dealy_sec){
