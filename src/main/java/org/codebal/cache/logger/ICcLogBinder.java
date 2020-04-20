@@ -1,4 +1,4 @@
-package codebal.catcher.logger;
+package org.codebal.cache.logger;
 
 public interface ICcLogBinder {
     void trace(Class cls, String msg);

@@ -1,4 +1,4 @@
-package codebal.catcher;
+package org.codebal.cache;
 
 import java.util.List;
 import java.util.function.Supplier;

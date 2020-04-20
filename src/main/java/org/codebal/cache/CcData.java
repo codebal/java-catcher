@@ -1,4 +1,4 @@
-package codebal.catcher;
+package org.codebal.cache;
 
 import java.io.Serializable;
 import java.util.Date;

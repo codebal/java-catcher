@@ -1,4 +1,4 @@
-package codebal.catcher.logger;
+package org.codebal.cache.logger;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;

@@ -1,4 +1,4 @@
-package codebal.catcher.test;
+package org.codebal.cache.test;
 
 import java.util.function.Consumer;
 

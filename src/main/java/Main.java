@@ -1,8 +1,6 @@
-import codebal.catcher.Catcher;
-import codebal.catcher.CcData;
-import codebal.catcher.test.ExThread;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
+import org.codebal.cache.Catcher;
+import org.codebal.cache.CcData;
+import org.codebal.cache.test.ExThread;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -98,7 +96,7 @@ public class Main {
             catch(Exception e){
                 return "error";
             }
-        }, 5, 100, true, true);
+        }, 5, 100, true, false);
     }
 
     static void log(String msg){

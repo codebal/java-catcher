@@ -1,6 +1,6 @@
-package codebal.catcher;
+package org.codebal.cache;
 
-import codebal.catcher.logger.CcLogger;
+import org.codebal.cache.logger.CcLogger;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -147,15 +147,6 @@ public class Catcher {
     }
 
     /**
-     *
-     * @param key
-     * @param supplier
-     * @param refresh_sec
-     * @param expire_sec
-     * @param asyncRefresh
-     * @param startNotNull
-     * @return
-     *
      * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
      */
     public CcData getSetCData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){

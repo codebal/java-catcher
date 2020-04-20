@@ -1,4 +1,4 @@
-package codebal.catcher.logger;
+package org.codebal.cache.logger;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
@@ -46,14 +46,14 @@ public class CcLogger {
 
         String msgStr = (String)msg;
 
-        basicLog(cls, level, msgStr);
+//        basicLog(cls, level, msgStr);
 
-//        if(isExistClass("org.slf4j.Logger")){
-//            CcLogSlf4j.log(cls, level, msgStr);
-//        }
-//        else{
-//            basicLog(cls, level, msgStr);
-//        }
+        if(isExistClass("org.slf4j.Logger")){
+            CcLogSlf4j.log(cls, level, msgStr);
+        }
+        else{
+            basicLog(cls, level, msgStr);
+        }
     }
 
     static void basicLog(Class cls, Level level, Object msg){
