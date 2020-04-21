@@ -1,4 +1,4 @@
-package codebal.catcher;
+package org.codebal.cache;
 
 public class CcThread extends Thread {
     CcRunner ccRunner;

@@ -11,3 +11,6 @@ target
 /build/
 .project
 /bin
+.vscode
+.settings
+.classpath

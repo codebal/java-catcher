@@ -1,4 +1,6 @@
-package codebal.catcher;
+package org.codebal.cache;
+
+import org.codebal.cache.logger.CcLogger;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -144,11 +146,15 @@ public class Catcher {
         return ccMaker.make(ccData, supplier);
     }
 
-    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+    /**
+     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
+     */
+    public CcData getSetCData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CcData ccData = getCacheData(key);
 
         boolean needCreate = false;
         boolean isNull = false;
+        boolean needWait = false;
         if(ccData != null){
             if(!ccData.isCreating() && ccData.needRefresh())
                 needCreate = true;
@@ -157,7 +163,16 @@ public class Catcher {
                 needCreate = true;
 
             //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
-            if(ccData.isCreating() && ccData.getData() == null && ccData.startNotNull){
+            if(ccData.isCreating()){
+                if(ccData.getData() == null && ccData.startNotNull){
+                    needWait = true;
+                }
+                else if(!ccData.asyncRefresh){
+                    needWait = true;
+                }
+            }
+
+            if(needWait){
                 waitCreateCache(ccData.key);
             }
         }
@@ -188,11 +203,18 @@ public class Catcher {
                     endCreatingCache(ccData);
                 }
             }
-
         }
 
-        return ccData.getData();
+        return ccData;
     }
+
+    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        CcData ccData = getSetCData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        if(ccData == null)
+            return null;
+        return (T)ccData.getData();
+    }
+
 
 //    public <T> T getSet2(String key, int refresh_sec, int expire_sec, boolean wait_new, Supplier<T> supplier){
 //        CcData currentCacheData = getCacheData(key);

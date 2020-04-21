@@ -1,4 +1,6 @@
-package codebal.catcher;
+package org.codebal.cache;
+
+import org.codebal.cache.logger.CcLogger;
 
 import java.util.Date;
 import java.util.function.Supplier;
