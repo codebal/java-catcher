@@ -1,6 +1,6 @@
-package org.codebal.cache;
+package com.codebal.cache.catcher;
 
-import org.codebal.cache.logger.CcLogger;
+import com.codebal.cache.catcher.logger.CacheLogger;
 
 import java.util.function.Function;
 import java.util.function.Supplier;
@@ -15,10 +15,10 @@ public class Catcher {
 
     boolean async = true;
 
-    Function<CcData, Boolean> cacheResourceSetter;
-    Function<Object, CcData> cacheResourceGetter;
+    Function<CacheData, Boolean> cacheResourceSetter;
+    Function<Object, CacheData> cacheResourceGetter;
 
-    CcMaker ccMaker;
+    CacheMaker cacheMaker;
 
     ICatcherSignal iCatcherSignal = null;
 
@@ -26,35 +26,35 @@ public class Catcher {
         this.cacheResourceSetter = cacheResourceSetter;
         this.cacheResourceGetter = cacheResourceGetter;
 
-        ccMaker = new CcMaker(this);
+        cacheMaker = new CacheMaker(this);
     }
 
     public Catcher(ICatcherSignal iCatcherSignal){
         this.iCatcherSignal = iCatcherSignal;
 
-        ccMaker = new CcMaker(this);
+        cacheMaker = new CacheMaker(this);
     }
 
-    public boolean setCacheData(CcData ccData){
-        //CcLogger.debug("--- 캐시입력 : " + ccData + " ---");
+    public boolean setCacheData(CacheData cacheData){
+        //CacheLogger.debug("--- 캐시입력 : " + cacheData + " ---");
         if(iCatcherSignal != null)
-            return iCatcherSignal.cacheResourceSetter(ccData);
+            return iCatcherSignal.cacheResourceSetter(cacheData);
         else
-            return cacheResourceSetter.apply(ccData);
+            return cacheResourceSetter.apply(cacheData);
     }
 
-    public void setCacheData(Supplier<CcData> supplier){
-        CcData ccData;
+    public void setCacheData(Supplier<CacheData> supplier){
+        CacheData cacheData;
         try{
-            ccData = supplier.get();
-            setCacheData(ccData);
+            cacheData = supplier.get();
+            setCacheData(cacheData);
         }
         catch(Exception e){
             e.printStackTrace();
         }
     }
 
-    public CcData getCacheData(String key){
+    public CacheData getCacheData(String key){
         try{
             if(iCatcherSignal != null){
                 return iCatcherSignal.cacheResourceGetter(key);
@@ -67,7 +67,7 @@ public class Catcher {
             e.printStackTrace();
             return null;
         }
-//        key = CcData.getLimitCacheKey(key);
+//        key = CacheData.getLimitCacheKey(key);
 //        try{
 //            SerializableDocument couchdata = bucket.get(key, SerializableDocument.class);
 //            if(couchdata == null || couchdata.content() == null){
@@ -76,9 +76,9 @@ public class Catcher {
 //            }
 //            else{
 //                try{
-//                    CcData ccData = (CcData)couchdata.content();
+//                    CacheData cacheData = (CacheData)couchdata.content();
 //                    //logger.debug("--- 캐시있음 : " + key + " ---");
-//                    return ccData;
+//                    return cacheData;
 //                }
 //                catch(Exception e){
 //                    showLog("--- 캐시가 있지만 타입이 틀려서 변환 오류 : " + key + " ---");
@@ -94,12 +94,12 @@ public class Catcher {
 //        }
     }
 
-//    public CcData getSetCacheData(CcData ccData, Supplier<CcData> supplier){
-//        CcData currentCacheData = this.getCacheData(ccData.key);
+//    public CacheData getSetCacheData(CacheData cacheData, Supplier<CacheData> supplier){
+//        CacheData currentCacheData = this.getCacheData(cacheData.key);
 //
 //        boolean needCreate = false;
-//        if(ccData != null){
-//            if(!ccData.isCreating() && ccData.needRefresh())
+//        if(cacheData != null){
+//            if(!cacheData.isCreating() && cacheData.needRefresh())
 //                needCreate = true;
 //        }
 //        else{
@@ -107,15 +107,15 @@ public class Catcher {
 //        }
 //
 //        if(needCreate){
-//            if(ccData.asyncRefresh){
-//                currentCacheData = createCacheData(ccData.key, ()->{
-//                    CcData newCacheData = supplier.get();
-//                    setCacheData(ccData);
-//                    return ccData;
+//            if(cacheData.asyncRefresh){
+//                currentCacheData = createCacheData(cacheData.key, ()->{
+//                    CacheData newCacheData = supplier.get();
+//                    setCacheData(cacheData);
+//                    return cacheData;
 //                });
 //            }
 //            else{
-//                createCacheData(ccData.key, ()->{
+//                createCacheData(cacheData.key, ()->{
 //                    this.setCacheData(supplier);
 //                    return null;
 //                });
@@ -123,101 +123,101 @@ public class Catcher {
 //        }
 //        else{
 //            if(wait && currentCacheData.isCreating())
-//                waitCreateCache(ccData.key);
+//                waitCreateCache(cacheData.key);
 //        }
 //
 //        return currentCacheData;
 //    }
 
     public <T> T get(String key){
-        CcData ccData = getCacheData(key);
-        if(ccData == null)
+        CacheData cacheData = getCacheData(key);
+        if(cacheData == null)
             return null;
         else
-            return ccData.getData();
+            return cacheData.getData();
     }
 
-    public CcData set(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CcData ccData = new CcData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
-        return set(ccData, supplier);
+    public CacheData set(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        return set(cacheData, supplier);
     }
 
-    public CcData set(CcData ccData, Supplier<Object> supplier){
-        return ccMaker.make(ccData, supplier);
+    public CacheData set(CacheData cacheData, Supplier<Object> supplier){
+        return cacheMaker.make(cacheData, supplier);
     }
 
     /**
      * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
      */
-    public CcData getSetCData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CcData ccData = getCacheData(key);
+    public CacheData getSetCData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
         boolean isNull = false;
         boolean needWait = false;
-        if(ccData != null){
-            if(!ccData.isCreating() && ccData.needRefresh())
+        if(cacheData != null){
+            if(!cacheData.isCreating() && cacheData.needRefresh())
                 needCreate = true;
 
-            if(ccData.needForceRefresh())
+            if(cacheData.needForceRefresh())
                 needCreate = true;
 
             //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
-            if(ccData.isCreating()){
-                if(ccData.getData() == null && ccData.startNotNull){
+            if(cacheData.isCreating()){
+                if(cacheData.getData() == null && cacheData.startNotNull){
                     needWait = true;
                 }
-                else if(!ccData.asyncRefresh){
+                else if(!cacheData.asyncRefresh){
                     needWait = true;
                 }
             }
 
             if(needWait){
-                waitCreateCache(ccData.key);
+                waitCreateCache(cacheData.key);
             }
         }
         else{
             needCreate = true;
             isNull = true;
-            ccData = new CcData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+            cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         }
 
         if(needCreate){ //캐시 생성을 해야 한다
-            boolean nowCreating = startCreatingCache(ccData);
+            boolean nowCreating = startCreatingCache(cacheData);
 
             if(nowCreating){
                 boolean async = true;
-                if(!isNull && !ccData.asyncRefresh){ //캐시가 존재하고, 비동기 리프래시를 안한다면
+                if(!isNull && !cacheData.asyncRefresh){ //캐시가 존재하고, 비동기 리프래시를 안한다면
                     async = false;
                 }
-                else if(isNull && ccData.startNotNull){ //캐시가 존재하지 않고, 캐시를 생성한 후에 받는다면
+                else if(isNull && cacheData.startNotNull){ //캐시가 존재하지 않고, 캐시를 생성한 후에 받는다면
                     async = false;
                 }
 
                 if(async){ //비동기 캐시 생성
-                    set(ccData, supplier);
+                    set(cacheData, supplier);
                 }
                 else{ //동기 캐시 생성
-                    ccData.setData(supplier.get());
-                    setCacheData(ccData);
-                    endCreatingCache(ccData);
+                    cacheData.setData(supplier.get());
+                    setCacheData(cacheData);
+                    endCreatingCache(cacheData);
                 }
             }
         }
 
-        return ccData;
+        return cacheData;
     }
 
     public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CcData ccData = getSetCData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
-        if(ccData == null)
+        CacheData cacheData = getSetCData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        if(cacheData == null)
             return null;
-        return (T)ccData.getData();
+        return (T) cacheData.getData();
     }
 
 
 //    public <T> T getSet2(String key, int refresh_sec, int expire_sec, boolean wait_new, Supplier<T> supplier){
-//        CcData currentCacheData = getCacheData(key);
+//        CacheData currentCacheData = getCacheData(key);
 //        boolean waitOther = false;
 //        boolean needCreate = false;
 //        boolean async = !wait_new;
@@ -255,13 +255,13 @@ public class Catcher {
 //        if(needCreate){
 //            //동기식
 //            if(!async){
-//                CcLogger.debug("--- 캐시생성 동기: " + key + " ---");
+//                CacheLogger.debug("--- 캐시생성 동기: " + key + " ---");
 //                startCreatingCache(key, refresh_sec, expire_sec);
 //                currentCacheData = createCacheData(key, ()->{
 //                    T data = supplier.get();
-//                    CcData ccData = new CcData(key, data, refresh_sec, expire_sec, null, null);
-//                    setCacheData(ccData);
-//                    return ccData;
+//                    CacheData cacheData = new CacheData(key, data, refresh_sec, expire_sec, null, null);
+//                    setCacheData(cacheData);
+//                    return cacheData;
 //                });
 //                resultData = currentCacheData.getData();
 //            }
@@ -269,14 +269,14 @@ public class Catcher {
 //            else{
 //                boolean canStart = startCreatingCache(key, refresh_sec, expire_sec);
 //                if(canStart){
-//                    CcLogger.debug("--- 캐시생성 비동기: " + key + " ---");
+//                    CacheLogger.debug("--- 캐시생성 비동기: " + key + " ---");
 //                    this.setCacheData(()->{
-//                        CcData ccData = createCacheData(key, ()->{
+//                        CacheData cacheData = createCacheData(key, ()->{
 //                            T data = supplier.get();
-//                            CcData newCacheData = new CcData(key, data, refresh_sec, expire_sec, null, null);
+//                            CacheData newCacheData = new CacheData(key, data, refresh_sec, expire_sec, null, null);
 //                            return newCacheData;
 //                        });
-//                        return ccData;
+//                        return cacheData;
 //                    });
 //                }
 //            }
@@ -284,7 +284,7 @@ public class Catcher {
 //        //--------------  캐시 생성 요청없음  ---------------
 //        else{
 //            if(waitOther){
-//                CcData cd = waitCreateCache(key);
+//                CacheData cd = waitCreateCache(key);
 //                resultData = cd.getData();
 //
 //            }
@@ -294,29 +294,29 @@ public class Catcher {
 //    }
 
     public boolean startCreatingCache(String key, int refresh_sec, int expire_sec){
-        CcData ccData = getCacheData(key);
-        if(ccData == null)
-            ccData = new CcData(key, null, refresh_sec, expire_sec, null, null);
+        CacheData cacheData = getCacheData(key);
+        if(cacheData == null)
+            cacheData = new CacheData(key, null, refresh_sec, expire_sec, null, null);
 
-        return startCreatingCache(ccData);
+        return startCreatingCache(cacheData);
     }
 
-    public boolean startCreatingCache(CcData ccData){
-        if(ccData.isCreating())
+    public boolean startCreatingCache(CacheData cacheData){
+        if(cacheData.isCreating())
             return false;
 
-        ccData.setCreating(true);
-        setCacheData(ccData);
+        cacheData.setCreating(true);
+        setCacheData(cacheData);
 
         return true;
     }
 
-    public boolean breakCreatingCache(CcData ccData){
-        if(!ccData.isCreating())
+    public boolean breakCreatingCache(CacheData cacheData){
+        if(!cacheData.isCreating())
             return false;
 
-        ccData.setCreating(false);
-        setCacheData(ccData);
+        cacheData.setCreating(false);
+        setCacheData(cacheData);
 
         return true;
     }
@@ -325,10 +325,10 @@ public class Catcher {
         endCreatingCache(getCacheData(key));
     }
 
-    public void endCreatingCache(CcData ccData){
-        if(ccData != null){
-            CcData newCcData = new CcData(ccData.key, ccData.getData(), ccData.refresh_sec, ccData.expire_sec, ccData.asyncRefresh, ccData.startNotNull);
-            setCacheData(newCcData);
+    public void endCreatingCache(CacheData cacheData){
+        if(cacheData != null){
+            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), cacheData.refresh_sec, cacheData.expire_sec, cacheData.asyncRefresh, cacheData.startNotNull);
+            setCacheData(newCacheData);
         }
     }
 
@@ -347,7 +347,7 @@ public class Catcher {
         }
         catch(Exception e){
             endCreatingCache(key);
-            CcLogger.error(this.getClass(), "error createCacheData / key:" + key);
+            CacheLogger.error(this.getClass(), "error createCacheData / key:" + key);
             e.printStackTrace();
         }
         finally {
@@ -357,21 +357,21 @@ public class Catcher {
         return result;
     }
 
-    public CcData waitCreateCache(String key) {
+    public CacheData waitCreateCache(String key) {
 
-        CcData ccData;
+        CacheData cacheData;
         int tryCnt = 0;
         while(tryCnt < waitCreateRetryMaxCnt){
             tryCnt++;
-            ccData = getCacheData(key);
-            if(ccData != null && !ccData.isCreating()){
-                return ccData;
+            cacheData = getCacheData(key);
+            if(cacheData != null && !cacheData.isCreating()){
+                return cacheData;
             }
-            CcLogger.debug(this.getClass(), "wait for creating cache / key:" + key + " ---");
+            CacheLogger.debug(this.getClass(), "wait for creating cache / key:" + key + " ---");
 
             if(tryCnt > waitCreateRetryMaxCnt){
-                CcLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );
-                breakCreatingCache(ccData);
+                CacheLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );
+                breakCreatingCache(cacheData);
                 break;
             }
 
@@ -390,11 +390,11 @@ public class Catcher {
 
     }
 
-    public Function<CcData, Boolean> getCacheResourceSetter() {
+    public Function<CacheData, Boolean> getCacheResourceSetter() {
         return cacheResourceSetter;
     }
 
-    public Function<Object, CcData> getCacheResourceGetter() {
+    public Function<Object, CacheData> getCacheResourceGetter() {
         return cacheResourceGetter;
     }
 }

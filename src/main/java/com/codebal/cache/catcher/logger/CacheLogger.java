@@ -1,9 +1,9 @@
-package org.codebal.cache.logger;
+package com.codebal.cache.catcher.logger;
 
 import java.text.SimpleDateFormat;
 import java.util.logging.Logger;
 
-public class CcLogger {
+public class CacheLogger {
     public enum Level {
         DEBUG,
         INFO,
@@ -49,7 +49,7 @@ public class CcLogger {
 //        basicLog(cls, level, msgStr);
 
         if(isExistClass("org.slf4j.Logger")){
-            CcLogSlf4j.log(cls, level, msgStr);
+            CacheLogSlf4j.log(cls, level, msgStr);
         }
         else{
             basicLog(cls, level, msgStr);

@@ -1,16 +1,16 @@
-package org.codebal.cache;
+package com.codebal.cache.catcher;
 
 import java.util.List;
 import java.util.function.Supplier;
 
-public class CcMaker {
+public class CacheMaker {
 
     Catcher catcher;
 
-    List<CcThread> cacheRunnerList;
+    List<CacheThread> cacheRunnerList;
     int threadIndex = 0;
 
-    public CcMaker(Catcher catcher){
+    public CacheMaker(Catcher catcher){
         this.catcher = catcher;
 
         //cacheRunnerList = new ArrayList<>();
@@ -24,7 +24,7 @@ public class CcMaker {
                 //System.out.println("쓰레드 모니터링 중");
                 try{
                     cacheRunnerList.forEach((crThread)->{
-                        crThread.getCcRunner().isTooLong();
+                        crThread.getCacheRunner().isTooLong();
                     });
                     Thread.sleep(1000);
                 }
@@ -37,25 +37,25 @@ public class CcMaker {
     }
 
     String getThreadName(){
-        return "ccRunner" + threadIndex++;
+        return "cacheRunner" + threadIndex++;
     }
 
-    public CcData make(CcData ccData, Supplier<Object> supplier){
-        CcRunner ccRunner = new CcRunner(catcher, ccData, supplier);
+    public CacheData make(CacheData cacheData, Supplier<Object> supplier){
+        CacheRunner cacheRunner = new CacheRunner(catcher, cacheData, supplier);
 
-        CcThread thread = new CcThread(ccRunner, getThreadName());
+        CacheThread thread = new CacheThread(cacheRunner, getThreadName());
         thread.start();
 
-        return ccData;
+        return cacheData;
     }
 
-    public void addCacheRunner(CcThread ccThread){
-        cacheRunnerList.add(ccThread);
+    public void addCacheRunner(CacheThread cacheThread){
+        cacheRunnerList.add(cacheThread);
     }
 
     public void removeCacheRunner(String thread_name){
-        CcThread removeCcThread = null;
-//        for(CcThread crThread : cacheRunnerList){
+        CacheThread removeCacheThread = null;
+//        for(CacheThread crThread : cacheRunnerList){
 //
 //        }
         cacheRunnerList.stream().forEach((crThread)->{
