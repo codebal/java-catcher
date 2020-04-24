@@ -137,10 +137,10 @@ public class Catcher {
             return cacheData.getData();
     }
 
-    public CacheData set(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
-        return set(cacheData, supplier);
-    }
+//    public CacheData set(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+//        return set(cacheData, supplier);
+//    }
 
     public CacheData set(CacheData cacheData, Supplier<Object> supplier){
         return cacheMaker.make(cacheData, supplier);
@@ -149,7 +149,7 @@ public class Catcher {
     /**
      * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
      */
-    public CacheData getSetCData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -164,7 +164,7 @@ public class Catcher {
 
             //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
             if(cacheData.isCreating()){
-                if(cacheData.getData() == null && cacheData.startNotNull){
+                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.startNotNull){
                     needWait = true;
                 }
                 else if(!cacheData.asyncRefresh){
@@ -179,7 +179,7 @@ public class Catcher {
         else{
             needCreate = true;
             isNull = true;
-            cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+            cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         }
 
         if(needCreate){ //캐시 생성을 해야 한다
@@ -198,7 +198,13 @@ public class Catcher {
                     set(cacheData, supplier);
                 }
                 else{ //동기 캐시 생성
-                    cacheData.setData(supplier.get());
+                    try{
+                        cacheData.setData(supplier.get());
+                    }
+                    catch(Exception e){
+                        e.printStackTrace();
+                        CacheLogger.error(Catcher.class, e);
+                    }
                     setCacheData(cacheData);
                     endCreatingCache(cacheData);
                 }
@@ -209,7 +215,7 @@ public class Catcher {
     }
 
     public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData cacheData = getSetCData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
@@ -296,7 +302,7 @@ public class Catcher {
     public boolean startCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
-            cacheData = new CacheData(key, null, refresh_sec, expire_sec, null, null);
+            cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null);
 
         return startCreatingCache(cacheData);
     }
@@ -315,6 +321,7 @@ public class Catcher {
         if(!cacheData.isCreating())
             return false;
 
+        cacheData.status = CacheData.Status.NORMAL;
         cacheData.setCreating(false);
         setCacheData(cacheData);
 
@@ -327,7 +334,7 @@ public class Catcher {
 
     public void endCreatingCache(CacheData cacheData){
         if(cacheData != null){
-            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), cacheData.refresh_sec, cacheData.expire_sec, cacheData.asyncRefresh, cacheData.startNotNull);
+            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.refresh_sec, cacheData.expire_sec, cacheData.asyncRefresh, cacheData.startNotNull);
             setCacheData(newCacheData);
         }
     }
@@ -367,7 +374,7 @@ public class Catcher {
             if(cacheData != null && !cacheData.isCreating()){
                 return cacheData;
             }
-            CacheLogger.debug(this.getClass(), "wait for creating cache / key:" + key + " ---");
+            CacheLogger.trace(this.getClass(), "wait for creating cache / key:" + key + " ---");
 
             if(tryCnt > waitCreateRetryMaxCnt){
                 CacheLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );

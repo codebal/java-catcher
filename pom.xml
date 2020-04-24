@@ -6,7 +6,7 @@
 
     <groupId>com.codebal.cache</groupId>
     <artifactId>catcher</artifactId>
-    <version>0.1.4</version>
+    <version>0.1.5</version>
 
     <name>Catcher</name>
     <description>Java Cache Manager (multi request, async refresh, ...)</description>
@@ -131,6 +131,14 @@
             <scope>runtime</scope>
             <optional>true</optional>
         </dependency>
+
+        <dependency>
+            <groupId>log4j</groupId>
+            <artifactId>log4j</artifactId>
+            <version>1.2.17</version>
+            <optional>true</optional>
+        </dependency>
+
     </dependencies>
     
 </project>

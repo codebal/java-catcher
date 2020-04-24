@@ -7,8 +7,15 @@ public class CacheData implements Serializable {
 
     static final int KEY_MAX_LENGTH = 200;
 
+    public enum Status {
+        NEW,
+        NORMAL,
+        CREATING
+    }
+
     private Object data = null;
     public String key;
+    public Status status;
     public Date crt_dt;
     public Date refresh_dt;  //데이터를 리프레시 하기 위한 만료 시간
     public Date expire_dt = null;  //데이터가 삭제되는 시간.
@@ -18,17 +25,14 @@ public class CacheData implements Serializable {
     public int hit_cnt;
     public boolean asyncRefresh = true; //리프레시를 비동기로
     public boolean startNotNull = true; //캐시가 존재하지 않는 경우, null을 반환하지 않고 생성될때까지 대기한후 값을 반환
+
     private boolean creating = false;
 
-    public CacheData(String key, Object data, int refresh_sec){
-        init(key, data, new Date(System.currentTimeMillis() + refresh_sec*1000), null, null, null);
+    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        init(key, data, status, new Date(System.currentTimeMillis() + refresh_sec*1000), new Date(System.currentTimeMillis() + expire_sec*1000), asyncRefresh, startNotNull);
     }
 
-    public CacheData(String key, Object data, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        init(key, data, new Date(System.currentTimeMillis() + refresh_sec*1000), new Date(System.currentTimeMillis() + expire_sec*1000), asyncRefresh, startNotNull);
-    }
-
-    void init(String key, Object data, Date refresh_dt, Date expire_dt, Boolean asyncRefresh, Boolean startNotNull){
+    void init(String key, Object data, Status status, Date refresh_dt, Date expire_dt, Boolean asyncRefresh, Boolean startNotNull){
         this.key = getLimitCacheKey(key);
 
         this.data = data;
@@ -55,6 +59,8 @@ public class CacheData implements Serializable {
 
         if(startNotNull != null)
             this.startNotNull = startNotNull;
+
+        this.status = status;
 
         //toString();
     }

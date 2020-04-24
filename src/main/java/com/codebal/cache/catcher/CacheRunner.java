@@ -36,7 +36,8 @@ public class CacheRunner implements Runnable {
             cacheData.setData(supplier.get());
         }
         catch(Exception e){
-            CacheLogger.error(this.getClass(), "thread name : " + Thread.currentThread().getName());
+            e.printStackTrace();
+            //CacheLogger.error(this.getClass(), "thread name : " + Thread.currentThread().getName());
             CacheLogger.error(this.getClass(), e);
         }
         finally {
