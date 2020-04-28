@@ -108,6 +108,7 @@ public class CacheData implements Serializable {
         return "CacheData{" +
                 "data=" + data +
                 ", key='" + key + '\'' +
+                ", status=" + status +
                 ", crt_dt=" + crt_dt +
                 ", refresh_dt=" + refresh_dt +
                 ", expire_dt=" + expire_dt +
@@ -115,6 +116,8 @@ public class CacheData implements Serializable {
                 ", expire_sec=" + expire_sec +
                 ", hit_dt=" + hit_dt +
                 ", hit_cnt=" + hit_cnt +
+                ", asyncRefresh=" + asyncRefresh +
+                ", startNotNull=" + startNotNull +
                 ", creating=" + creating +
                 '}';
     }

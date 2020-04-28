@@ -25,11 +25,12 @@ public class Main {
                 while(true){
                     try{
                         Thread.sleep((int)(Math.random()*1000) + 2000);
-                        //Thread.sleep(1000);
+                        //Thread.sleep(2000);
                         long st = System.currentTimeMillis();
                         String value = Common.getSetTest(catcher,"key1", Thread.currentThread().getName(), 1000,
                                 ()->{
                                     getCount++;
+                                    //return getCount;
                                     return 10 / (2 - getCount);
                                 }, true, false);
                         long delay = System.currentTimeMillis() - st;

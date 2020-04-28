@@ -33,7 +33,8 @@ public class CacheRunner implements Runnable {
         start_dt = new Date(System.currentTimeMillis());
 
         try{
-            cacheData.setData(supplier.get());
+            Object data = supplier.get();
+            cacheData.setData(data);
         }
         catch(Exception e){
             e.printStackTrace();

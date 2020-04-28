@@ -15,6 +15,13 @@ public class Catcher {
 
     boolean async = true;
 
+    public enum Action{
+        GET_CACHE_ONLY,
+        WAIT_CACHE_CREATE,
+        DIRECT_NEW_CACHE,
+        DIRECT_REFRESH_CACHE
+    }
+
     Function<CacheData, Boolean> cacheResourceSetter;
     Function<Object, CacheData> cacheResourceGetter;
 
@@ -137,13 +144,28 @@ public class Catcher {
             return cacheData.getData();
     }
 
-//    public CacheData set(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
 //        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
-//        return set(cacheData, supplier);
+//        return createCacheDataAsync(cacheData, supplier);
 //    }
 
-    public CacheData set(CacheData cacheData, Supplier<Object> supplier){
+    public CacheData createCacheDataAsync(CacheData cacheData, Supplier<Object> supplier){
         return cacheMaker.make(cacheData, supplier);
+    }
+
+
+    public CacheData createCacheDataSync(CacheData cacheData, Supplier<Object> supplier){
+        try{
+            cacheData.setData(supplier.get());
+        }
+        catch(Exception e){
+            e.printStackTrace();
+            CacheLogger.error(Catcher.class, e);
+        }
+        setCacheData(cacheData);
+        endCreatingCache(cacheData);
+
+        return cacheData;
     }
 
     /**
@@ -183,7 +205,7 @@ public class Catcher {
         }
 
         if(needCreate){ //캐시 생성을 해야 한다
-            boolean nowCreating = startCreatingCache(cacheData);
+            boolean nowCreating = flagStartCreatingCache(cacheData);
 
             if(nowCreating){
                 boolean async = true;
@@ -195,11 +217,71 @@ public class Catcher {
                 }
 
                 if(async){ //비동기 캐시 생성
-                    set(cacheData, supplier);
+                    createCacheDataAsync(cacheData, supplier);
+                }
+                else{ //동기 캐시 생성
+                    createCacheDataSync(cacheData, supplier);
+                }
+            }
+        }
+
+        return cacheData;
+    }
+
+
+    public CacheData getSetCacheData2(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        CacheData cacheData = getCacheData(key);
+
+        Action action = getAction(cacheData);
+        if(Action.WAIT_CACHE_CREATE.equals(action)){
+            waitCreateCache(cacheData.key);
+        }
+
+        boolean needCreate = false;
+
+        if(Action.DIRECT_NEW_CACHE.equals(action) || Action.DIRECT_REFRESH_CACHE.equals(action)){
+            needCreate = true;
+
+            if(Action.DIRECT_NEW_CACHE.equals(action)){ // cacheData is null
+                cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+            }
+        }
+
+        if(needCreate){ //캐시 생성을 해야 한다
+            boolean directCreating;
+
+            //System.out.println("sync begin - " + Thread.currentThread().getName());
+
+            synchronized (this){
+                //System.out.println("sync 1 - " + Thread.currentThread().getName());
+                //System.out.println(cacheData + "- " + Thread.currentThread().getName());
+                CacheData currentCacheData = getCacheData(key);
+                //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
+                if(currentCacheData != null)
+                    cacheData = currentCacheData;
+                directCreating = flagStartCreatingCache(cacheData);
+
+                //System.out.println("sync 2 - " + Thread.currentThread().getName());
+            }
+
+            //System.out.println("sync end - " + Thread.currentThread().getName());
+
+            if(directCreating){
+                boolean async = true;
+                if(Action.DIRECT_REFRESH_CACHE.equals(action) && !cacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
+                    async = false;
+                }
+                else if(Action.DIRECT_NEW_CACHE.equals(action) && cacheData.startNotNull){ //캐시 신규 생성, startNotNull = true
+                    async = false;
+                }
+
+                if(async){ //비동기 캐시 생성
+                    createCacheDataAsync(cacheData, supplier);
                 }
                 else{ //동기 캐시 생성
                     try{
-                        cacheData.setData(supplier.get());
+                        Object data = supplier.get();
+                        cacheData.setData(data);
                     }
                     catch(Exception e){
                         e.printStackTrace();
@@ -214,8 +296,46 @@ public class Catcher {
         return cacheData;
     }
 
+    public Action getAction(String key){
+        CacheData cacheData = getCacheData(key);
+
+        return getAction(cacheData);
+    }
+
+    public Action getAction(CacheData cacheData){
+        boolean needCreate = false;
+        boolean needWait = false;
+        if(cacheData != null){
+            if(!cacheData.isCreating() && cacheData.needRefresh())
+                needCreate = true;
+
+            if(cacheData.needForceRefresh())
+                needCreate = true;
+
+            //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
+            if(cacheData.isCreating()){
+                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.startNotNull){
+                    needWait = true;
+                }
+                else if(!cacheData.asyncRefresh){
+                    needWait = true;
+                }
+            }
+
+            if(needWait)
+                return Action.WAIT_CACHE_CREATE;
+            else if(needCreate)
+                return Action.DIRECT_REFRESH_CACHE;
+        }
+        else{
+            return Action.DIRECT_NEW_CACHE;
+        }
+
+        return Action.GET_CACHE_ONLY;
+    }
+
     public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        CacheData cacheData = getSetCacheData2(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
@@ -262,7 +382,7 @@ public class Catcher {
 //            //동기식
 //            if(!async){
 //                CacheLogger.debug("--- 캐시생성 동기: " + key + " ---");
-//                startCreatingCache(key, refresh_sec, expire_sec);
+//                flagStartCreatingCache(key, refresh_sec, expire_sec);
 //                currentCacheData = createCacheData(key, ()->{
 //                    T data = supplier.get();
 //                    CacheData cacheData = new CacheData(key, data, refresh_sec, expire_sec, null, null);
@@ -273,7 +393,7 @@ public class Catcher {
 //            }
 //            //비동기식
 //            else{
-//                boolean canStart = startCreatingCache(key, refresh_sec, expire_sec);
+//                boolean canStart = flagStartCreatingCache(key, refresh_sec, expire_sec);
 //                if(canStart){
 //                    CacheLogger.debug("--- 캐시생성 비동기: " + key + " ---");
 //                    this.setCacheData(()->{
@@ -299,15 +419,15 @@ public class Catcher {
 //        return resultData;
 //    }
 
-    public boolean startCreatingCache(String key, int refresh_sec, int expire_sec){
+    public boolean flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
             cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null);
 
-        return startCreatingCache(cacheData);
+        return flagStartCreatingCache(cacheData);
     }
 
-    public boolean startCreatingCache(CacheData cacheData){
+    public boolean flagStartCreatingCache(CacheData cacheData){
         if(cacheData.isCreating())
             return false;
 
@@ -317,7 +437,7 @@ public class Catcher {
         return true;
     }
 
-    public boolean breakCreatingCache(CacheData cacheData){
+    public boolean flagFinishCreatingCache(CacheData cacheData){
         if(!cacheData.isCreating())
             return false;
 
@@ -378,7 +498,7 @@ public class Catcher {
 
             if(tryCnt > waitCreateRetryMaxCnt){
                 CacheLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );
-                breakCreatingCache(cacheData);
+                flagFinishCreatingCache(cacheData);
                 break;
             }
 
