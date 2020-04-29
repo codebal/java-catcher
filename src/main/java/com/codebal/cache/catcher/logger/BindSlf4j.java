@@ -3,10 +3,13 @@ package com.codebal.cache.catcher.logger;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-public class CacheLogSlf4j {
+public class BindSlf4j {
     static void log(Class cls, CacheLogger.Level level, String msg){
         Logger logger = LoggerFactory.getLogger(cls);
-        if(CacheLogger.Level.DEBUG.equals(level)){
+        if(CacheLogger.Level.TRACE.equals(level)){
+            logger.trace(msg);
+        }
+        else if(CacheLogger.Level.DEBUG.equals(level)){
             logger.debug(msg);
         }
         else if(CacheLogger.Level.INFO.equals(level)){

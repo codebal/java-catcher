@@ -33,10 +33,12 @@ public class CacheRunner implements Runnable {
         start_dt = new Date(System.currentTimeMillis());
 
         try{
-            cacheData.setData(supplier.get());
+            Object data = supplier.get();
+            cacheData.setData(data);
         }
         catch(Exception e){
-            CacheLogger.error(this.getClass(), "thread name : " + Thread.currentThread().getName());
+            e.printStackTrace();
+            //CacheLogger.error(this.getClass(), "thread name : " + Thread.currentThread().getName());
             CacheLogger.error(this.getClass(), e);
         }
         finally {
