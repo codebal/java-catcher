@@ -79,7 +79,7 @@ public class CacheLogger {
     }
 
     static void basicLog(Class cls, Level level, Object msg){
-        if(level.equals(Level.DEBUG)){
+        if(level.equals(Level.DEBUG) || level.equals(Level.TRACE)){
             if(!isDebugMode()) return;
         }
 

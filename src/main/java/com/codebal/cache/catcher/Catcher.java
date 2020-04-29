@@ -171,7 +171,8 @@ public class Catcher {
     /**
      * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
      */
-    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+    @Deprecated
+    public CacheData __getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -229,17 +230,17 @@ public class Catcher {
     }
 
 
-    public CacheData getSetCacheData2(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CacheData cacheData = getCacheData(key);
+
+        boolean needCreate = false;
+        boolean needWait = false;
 
         Action action = getAction(cacheData);
         if(Action.WAIT_CACHE_CREATE.equals(action)){
-            waitCreateCache(cacheData.key);
+            needWait = true;
         }
-
-        boolean needCreate = false;
-
-        if(Action.DIRECT_NEW_CACHE.equals(action) || Action.DIRECT_REFRESH_CACHE.equals(action)){
+        else if(Action.DIRECT_NEW_CACHE.equals(action) || Action.DIRECT_REFRESH_CACHE.equals(action)){
             needCreate = true;
 
             if(Action.DIRECT_NEW_CACHE.equals(action)){ // cacheData is null
@@ -291,7 +292,19 @@ public class Catcher {
                     endCreatingCache(cacheData);
                 }
             }
+            else{
+                action = getAction(cacheData);
+                if(Action.WAIT_CACHE_CREATE.equals(action)){
+                    needWait = true;
+                }
+            }
+
+            if(needWait){
+                cacheData = waitCreateCache(cacheData.key);
+            }
         }
+
+
 
         return cacheData;
     }
@@ -335,7 +348,7 @@ public class Catcher {
     }
 
     public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData cacheData = getSetCacheData2(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
