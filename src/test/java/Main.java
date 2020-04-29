@@ -32,7 +32,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, false);
+                                }, true, true);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }

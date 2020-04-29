@@ -248,6 +248,8 @@ public class Catcher {
             }
         }
 
+        //System.out.println(action + " - " + Thread.currentThread().getName());
+
         if(needCreate){ //캐시 생성을 해야 한다
             boolean directCreating;
 
@@ -292,18 +294,16 @@ public class Catcher {
                     endCreatingCache(cacheData);
                 }
             }
-            else{
-                action = getAction(cacheData);
-                if(Action.WAIT_CACHE_CREATE.equals(action)){
-                    needWait = true;
-                }
-            }
 
-            if(needWait){
-                cacheData = waitCreateCache(cacheData.key);
+            action = getAction(cacheData);
+            if(Action.WAIT_CACHE_CREATE.equals(action)){
+                needWait = true;
             }
         }
 
+        if(needWait){
+            cacheData = waitCreateCache(cacheData.key);
+        }
 
 
         return cacheData;
