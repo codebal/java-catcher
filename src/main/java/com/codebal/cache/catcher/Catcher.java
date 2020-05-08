@@ -293,8 +293,8 @@ public class Catcher {
                     }
                     setCacheData(newCacheData);
                     endCreatingCache(newCacheData);
+                    cacheData = newCacheData;
                 }
-                cacheData = newCacheData;
             }
             else{
                 action = getAction(cacheData);
