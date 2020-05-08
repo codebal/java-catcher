@@ -4,7 +4,7 @@ import com.codebal.cache.catcher.Catcher;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.function.Function;
+import java.util.Random;
 import java.util.function.Supplier;
 
 public class Common {
@@ -35,7 +35,8 @@ public class Common {
     }
 
     static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean startNotNull){
-        return catcher.getSet(key, ()->{
+        int refresh_sec = (int)(Math.random() * 3) + 3;
+        CacheData cacheData = catcher.getSetCacheData(key, ()->{
             try{
                 Thread.sleep(delay);
                 SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
@@ -51,7 +52,10 @@ public class Common {
                 e.printStackTrace();
                 return "error";
             }
-        }, 5, 100, asyncRefresh, startNotNull);
+        }, refresh_sec, 100, asyncRefresh, startNotNull);
+        log("refresh_sec:" + refresh_sec);
+        log(cacheData.toString());
+        return cacheData.getData();
     }
 
     static void log(String msg){

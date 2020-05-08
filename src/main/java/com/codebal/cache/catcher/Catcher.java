@@ -231,6 +231,7 @@ public class Catcher {
 
 
     public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -244,7 +245,7 @@ public class Catcher {
             needCreate = true;
 
             if(Action.DIRECT_NEW_CACHE.equals(action)){ // cacheData is null
-                cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+                cacheData = newCacheData;
             }
         }
 
@@ -271,40 +272,42 @@ public class Catcher {
 
             if(directCreating){
                 boolean async = true;
-                if(Action.DIRECT_REFRESH_CACHE.equals(action) && !cacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
+                if(Action.DIRECT_REFRESH_CACHE.equals(action) && !newCacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
                     async = false;
                 }
-                else if(Action.DIRECT_NEW_CACHE.equals(action) && cacheData.startNotNull){ //캐시 신규 생성, startNotNull = true
+                else if(Action.DIRECT_NEW_CACHE.equals(action) && newCacheData.startNotNull){ //캐시 신규 생성, startNotNull = true
                     async = false;
                 }
 
                 if(async){ //비동기 캐시 생성
-                    createCacheDataAsync(cacheData, supplier);
+                    createCacheDataAsync(newCacheData, supplier);
                 }
                 else{ //동기 캐시 생성
                     try{
                         Object data = supplier.get();
-                        cacheData.setData(data);
+                        newCacheData.setData(data);
                     }
                     catch(Exception e){
                         e.printStackTrace();
                         CacheLogger.error(Catcher.class, e);
                     }
-                    setCacheData(cacheData);
-                    endCreatingCache(cacheData);
+                    setCacheData(newCacheData);
+                    endCreatingCache(newCacheData);
+                    cacheData = newCacheData;
+                }
+            }
+            else{
+                action = getAction(cacheData);
+                if(Action.WAIT_CACHE_CREATE.equals(action)){
+                    needWait = true;
                 }
             }
 
-            action = getAction(cacheData);
-            if(Action.WAIT_CACHE_CREATE.equals(action)){
-                needWait = true;
-            }
         }
 
         if(needWait){
             cacheData = waitCreateCache(cacheData.key);
         }
-
 
         return cacheData;
     }
