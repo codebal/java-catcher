@@ -6,7 +6,7 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 <br/> 
 
 Catcher  
-![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Position%20of%20Catcher.jpg)
+![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Position%20of%20Catcher.jpg)  
 
 <br/>
 
@@ -56,7 +56,7 @@ catcher setting :
 <br/>
 
 Response time using Ehcache  
-![Response time using Ehcache](etc/img/ehcache-Response Time Graph.jpg)
+![Response time using Ehcache](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/ehcache-Response%20Time%20Graph.jpg)
 ***
 Response time using Ehcache  
-![Response time using Ehcache](etc/img/catcher-Response Time Graph.jpg)      
+![Response time using Ehcache](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/catcher-Response%20Time%20Graph.jpg)      
