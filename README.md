@@ -1,3 +1,31 @@
+<style>
+.post-container {
+    img {
+        margin: 10px 0;
+    }
+}
+
+.container {
+    max-width: 800px;
+}
+
+.post-img {
+    display: block;
+    margin: 10px 0px 20px;
+    img {
+        border: solid 1px #ccc;
+        margin: 10px 0px 5px 0px;
+    }
+    .caption {
+        display: block;
+        text-align: center;
+        font-size: 16px;
+        line-height: 16px;
+        margin: -10px 0px 0px;
+    }
+}
+</style>
+
 # java-catcher
 
 Catcher is Java Cache Manager (multi request, async refresh, ..)
@@ -5,7 +33,9 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 <br/>
 <br/> 
 
-![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Extended%20Cache%20Data.JPG)  
+<span class="post-img">![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Extended%20Cache%20Data.JPG)<span class="caption">Catcher</span></span>
+
+  
 <center>Catcher</center>
 
 <br/>
