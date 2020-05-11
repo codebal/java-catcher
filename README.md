@@ -18,7 +18,7 @@ Extended Cache Data
 Single Request on Sync  
 ![Single Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20on%20Sync.JPG)
 ***
-Single Request with Catcher  
+Single Request with **Catcher**  
 ![Single Request with Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20with%20Catcher.JPG)
 
 <br/>
@@ -26,7 +26,7 @@ Single Request with Catcher
 Multi Request on Sync  
 ![Multi Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
 ***
-Multi Request with Catcher  
+Multi Request with **Catcher**  
 ![Multi Request with Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20with%20Catcher.JPG)
 
 <br/>
@@ -49,7 +49,7 @@ catcher setting :
  - ehcache only :  
       cache creating occurred : **800**  
       response delay occurred : every cache creating  
- - eacache <span style="color:#f00">+ catcher</span>  
+ - eacache **+ catcher**  
       cache creating occurred : **6**  
       response delay occurred : only first cache creating 
 
@@ -58,5 +58,5 @@ catcher setting :
 Response time using Ehcache 
 ![Response time using Ehcache](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/ehcache-Response%20Time%20Graph.jpg)
 ***
-Response time using Ehcache <span style="color:#f00">+ Catcher</span> 
+Response time using Ehcache **+ Catcher** 
 ![Response time using Ehcache + Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/catcher-Response%20Time%20Graph.jpg)      
