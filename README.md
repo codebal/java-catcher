@@ -45,7 +45,9 @@ catcher setting :
  - refresh time = 3 seconds  
  - expire time = 5 seconds (also ehcache timeToLiveSeconds = 5)
 
-<span style="color:#00f">RESULT</span>  
+<br/>
+
+##### RESULT  
  - ehcache only :  
       cache creating occurred : **800**  
       response delay occurred : every cache creating  
