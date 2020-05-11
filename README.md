@@ -9,11 +9,11 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 
 <br/>
 
-![Extended Cache Data](/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
+![Extended Cache Data](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
 
 <br/>
 
-![Single Request on Sync](etc/img/Single Request on Sync.JPG)
+![Single Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20on%20Sync.JPG)
 ***
 ![Single Request with Catcher](etc/img/Single Request with Catcher.JPG)
 
