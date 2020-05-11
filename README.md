@@ -9,7 +9,7 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 
 <br/>
 
-![Extended Cache Data](etc/img/Extended Cache Data.JPG)
+![Extended Cache Data](/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
 
 <br/>
 
