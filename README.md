@@ -1,31 +1,3 @@
-<style>
-.post-container {
-    img {
-        margin: 10px 0;
-    }
-}
-
-.container {
-    max-width: 800px;
-}
-
-.post-img {
-    display: block;
-    margin: 10px 0px 20px;
-    img {
-        border: solid 1px #ccc;
-        margin: 10px 0px 5px 0px;
-    }
-    .caption {
-        display: block;
-        text-align: center;
-        font-size: 16px;
-        line-height: 16px;
-        margin: -10px 0px 0px;
-    }
-}
-</style>
-
 # java-catcher
 
 Catcher is Java Cache Manager (multi request, async refresh, ..)
@@ -33,27 +5,28 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 <br/>
 <br/> 
 
-<span class="post-img">![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Extended%20Cache%20Data.JPG)<span class="caption">Catcher</span></span>
-
-  
-<center>Catcher</center>
-
-<br/>
-<br/>
-
-![Extended Cache Data](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
+Catcher  
+![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Position%20of%20Catcher.jpg)
 
 <br/>
 
+Extended Cache Data  
+![Extended Cache Data](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Extended%20Cache%20Data.JPG)
+
+<br/>
+
+Single Request on Sync  
 ![Single Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20on%20Sync.JPG)
 ***
+Single Request with Catcher  
 ![Single Request with Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20with%20Catcher.JPG)
 
 <br/>
-<br/>
 
+Multi Request on Sync  
 ![Multi Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
 ***
+Multi Request with Catcher  
 ![Multi Request with Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20with%20Catcher.JPG)
 
 <br/>
@@ -79,7 +52,11 @@ catcher setting :
  - eacache <span style="color:#f00">+ catcher</span>  
       cache creating occurred : **6**  
       response delay occurred : only first cache creating 
-      
+
+<br/>
+
+Response time using Ehcache  
 ![Response time using Ehcache](etc/img/ehcache-Response Time Graph.jpg)
 ***
+Response time using Ehcache  
 ![Response time using Ehcache](etc/img/catcher-Response Time Graph.jpg)      
