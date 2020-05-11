@@ -55,8 +55,8 @@ catcher setting :
 
 <br/>
 
-Response time using Ehcache  
+Response time using Ehcache 
 ![Response time using Ehcache](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/ehcache-Response%20Time%20Graph.jpg)
 ***
-Response time using Ehcache  
-![Response time using Ehcache](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/catcher-Response%20Time%20Graph.jpg)      
+Response time using Ehcache <span style="color:#f00">+ Catcher</span> 
+![Response time using Ehcache + Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/catcher-Response%20Time%20Graph.jpg)      
