@@ -23,9 +23,8 @@
 
     <licenses>
         <license>
-            <name>GPLv2</name>
-            <url>http://www.opensource.org/licenses/gpl-2.0.php</url>
-            <distribution>repo</distribution>
+            <name>MIT License</name>
+            <url>http://opensource.org/licenses/MIT</url>
         </license>
     </licenses>
 

@@ -29,7 +29,7 @@ public class Catcher {
 
     ICatcherSignal iCatcherSignal = null;
 
-    public Catcher(Function cacheResourceSetter, Function cacheResourceGetter){
+    public Catcher(Function<CacheData, Boolean> cacheResourceSetter, Function<Object, CacheData> cacheResourceGetter){
         this.cacheResourceSetter = cacheResourceSetter;
         this.cacheResourceGetter = cacheResourceGetter;
 

@@ -4,7 +4,6 @@ import com.codebal.cache.catcher.Catcher;
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
 import java.util.Map;
-import java.util.Random;
 import java.util.function.Supplier;
 
 public class Common {
@@ -17,9 +16,8 @@ public class Common {
         Common.log("Catcher init");
         Catcher catcher = new Catcher(
                 (cData)->{
-                    CacheData ccData = (CacheData)cData;
                     try{
-                        cacheResource.put(ccData.key, ccData);
+                        cacheResource.put(cData.key, cData);
                         return true;
                     }
                     catch(Exception e){
@@ -28,7 +26,7 @@ public class Common {
                     }
                 },
                 (cacheKey)->{
-                    return cacheResource.get(cacheKey);
+                    return (CacheData)cacheResource.get(cacheKey);
                 }
         );
         return catcher;
