@@ -1,0 +1,25 @@
+.post-container {
+    img {
+        margin: 10px 0;
+    }
+}
+
+.container {
+    max-width: 800px;
+}
+
+.post-img {
+    display: block;
+    margin: 10px 0px 20px;
+    img {
+        border: solid 1px #ccc;
+        margin: 10px 0px 5px 0px;
+    }
+    .caption {
+        display: block;
+        text-align: center;
+        font-size: 16px;
+        line-height: 16px;
+        margin: -10px 0px 0px;
+    }
+}
