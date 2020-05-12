@@ -5,18 +5,22 @@ Catcher is Java Cache Manager (multi request, async refresh, ..)
 <br/>
 <br/> 
 
-Catcher  
+### Position of Catcher  
 ![Position of Catcher](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Position%20of%20Catcher.jpg)  
 
 <br/>
 <br/>
+<br/>
 
-Extended Cache Data  
+### Catcher's Extended Cache Data  
 ![Extended Cache Data](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Extended%20Cache%20Data.JPG)
 
 <br/>
 <br/>
 <br/>
+
+
+### Difference from syncronous cache system (single request)
 
 Single Request on Sync  
 ![Single Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Single%20Request%20on%20Sync.JPG)
@@ -28,6 +32,8 @@ Single Request with **Catcher**
 <br/>
 <br/>
 
+### Difference from syncronous cache system (multi request)
+
 Multi Request on Sync  
 ![Multi Request on Sync](https://raw.githubusercontent.com/codebal/java-catcher/master/etc/img/Multi%20Request%20on%20Sync.JPG)
 ***
@@ -36,8 +42,10 @@ Multi Request with **Catcher**
 
 <br/>
 <br/>
+<br/>
 
-#### **jmeter web response test**  
+### jmeter web response test  
+
 threads : 10000  
 periods : 10 seconds  
 elapsed time : 16-18 seconds  
@@ -73,6 +81,14 @@ Response time using Ehcache **+ Catcher**
 <br/>
 
 ### Usage
+
+```
+<dependency>
+    <groupId>com.codebal.cache</groupId>
+    <artifactId>catcher</artifactId>
+    <version>0.1.10</version>
+</dependency>
+```
 
 ```java
 import com.codebal.cache.catcher.CacheData;
@@ -156,7 +172,7 @@ public class SimpleTest {
 }
 ```
 
-```java
+```
 // out
 
 // startNotNull = true
