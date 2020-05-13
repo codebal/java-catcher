@@ -168,9 +168,6 @@ public class Catcher {
         return cacheData;
     }
 
-    /**
-     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
-     */
     @Deprecated
     public CacheData __getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CacheData cacheData = getCacheData(key);
@@ -206,7 +203,8 @@ public class Catcher {
         }
 
         if(needCreate){ //캐시 생성을 해야 한다
-            boolean nowCreating = flagStartCreatingCache(cacheData);
+            boolean nowCreating = false;
+            flagStartCreatingCache(cacheData);
 
             if(nowCreating){
                 boolean async = true;
@@ -230,6 +228,9 @@ public class Catcher {
     }
 
 
+    /**
+     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
+     */
     public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
         CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
         CacheData cacheData = getCacheData(key);
@@ -252,18 +253,28 @@ public class Catcher {
         //System.out.println(action + " - " + Thread.currentThread().getName());
 
         if(needCreate){ //캐시 생성을 해야 한다
-            boolean directCreating;
+            boolean directCreating = false;
 
             //System.out.println("sync begin - " + Thread.currentThread().getName());
 
             synchronized (this){
                 //System.out.println("sync 1 - " + Thread.currentThread().getName());
                 //System.out.println(cacheData + "- " + Thread.currentThread().getName());
-                CacheData currentCacheData = getCacheData(key);
-                //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
-                if(currentCacheData != null)
-                    cacheData = currentCacheData;
-                directCreating = flagStartCreatingCache(cacheData);
+                if(cacheData.needForceRefresh()){
+                    //문제가 생겨서 강제로 리프래시 해줘야 한다.
+                    cacheData.setCreating(false);
+                }
+                else{
+                    CacheData currentCacheData = getCacheData(key);
+                    //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
+                    if(currentCacheData != null)
+                        cacheData = currentCacheData;
+                }
+
+                if(!cacheData.isCreating()){
+                    directCreating = true;
+                    flagStartCreatingCache(cacheData);
+                }
 
                 //System.out.println("sync 2 - " + Thread.currentThread().getName());
             }
@@ -328,6 +339,9 @@ public class Catcher {
             if(cacheData.needForceRefresh())
                 needCreate = true;
 
+            if(needCreate)
+                return Action.DIRECT_REFRESH_CACHE;
+
             //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
             if(cacheData.isCreating()){
                 if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.startNotNull){
@@ -340,8 +354,6 @@ public class Catcher {
 
             if(needWait)
                 return Action.WAIT_CACHE_CREATE;
-            else if(needCreate)
-                return Action.DIRECT_REFRESH_CACHE;
         }
         else{
             return Action.DIRECT_NEW_CACHE;
@@ -435,33 +447,23 @@ public class Catcher {
 //        return resultData;
 //    }
 
-    public boolean flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
+    public void flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
             cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null);
 
-        return flagStartCreatingCache(cacheData);
+        flagStartCreatingCache(cacheData);
     }
 
-    public boolean flagStartCreatingCache(CacheData cacheData){
-        if(cacheData.isCreating())
-            return false;
-
+    public void flagStartCreatingCache(CacheData cacheData){
         cacheData.setCreating(true);
         setCacheData(cacheData);
-
-        return true;
     }
 
-    public boolean flagFinishCreatingCache(CacheData cacheData){
-        if(!cacheData.isCreating())
-            return false;
-
+    public void flagFinishCreatingCache(CacheData cacheData){
         cacheData.status = CacheData.Status.NORMAL;
         cacheData.setCreating(false);
         setCacheData(cacheData);
-
-        return true;
     }
 
     public void endCreatingCache(String key){
@@ -504,7 +506,7 @@ public class Catcher {
 
         CacheData cacheData;
         int tryCnt = 0;
-        while(tryCnt < waitCreateRetryMaxCnt){
+        while(true){
             tryCnt++;
             cacheData = getCacheData(key);
             if(cacheData != null && !cacheData.isCreating()){
@@ -515,7 +517,7 @@ public class Catcher {
             if(tryCnt > waitCreateRetryMaxCnt){
                 CacheLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );
                 flagFinishCreatingCache(cacheData);
-                break;
+                return cacheData;
             }
 
             try{
@@ -525,8 +527,6 @@ public class Catcher {
                 e.printStackTrace();
             }
         }
-
-        return null;
     }
 
     public void remove(String key){

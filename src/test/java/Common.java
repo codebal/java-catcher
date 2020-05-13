@@ -33,7 +33,8 @@ public class Common {
     }
 
     static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean startNotNull){
-        int refresh_sec = (int)(Math.random() * 3) + 3;
+        //int refresh_sec = (int)(Math.random() * 3) + 3;
+        int refresh_sec = 3;
         CacheData cacheData = catcher.getSetCacheData(key, ()->{
             try{
                 Thread.sleep(delay);
@@ -51,7 +52,7 @@ public class Common {
                 return "error";
             }
         }, refresh_sec, 100, asyncRefresh, startNotNull);
-        log("refresh_sec:" + refresh_sec);
+        //log("refresh_sec:" + refresh_sec);
         log(cacheData.toString());
         return cacheData.getData();
     }

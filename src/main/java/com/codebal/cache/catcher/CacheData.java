@@ -70,7 +70,7 @@ public class CacheData implements Serializable {
     }
 
     public boolean needForceRefresh(){
-        return (this.refresh_dt.getTime() + 60*1000) < System.currentTimeMillis();
+        return (this.refresh_dt.getTime() + 10*1000) < System.currentTimeMillis();
     }
 
     public <T> T getData(){
