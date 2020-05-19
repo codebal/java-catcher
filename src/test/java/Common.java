@@ -32,7 +32,7 @@ public class Common {
         return catcher;
     }
 
-    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean startNotNull){
+    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean richStart){
         //int refresh_sec = (int)(Math.random() * 3) + 3;
         int refresh_sec = 3;
         CacheData cacheData = catcher.getSetCacheData(key, ()->{
@@ -51,7 +51,7 @@ public class Common {
                 e.printStackTrace();
                 return "error";
             }
-        }, refresh_sec, 100, asyncRefresh, startNotNull);
+        }, refresh_sec, 100, asyncRefresh, richStart);
         //log("refresh_sec:" + refresh_sec);
         log(cacheData.toString());
         return cacheData.getData();

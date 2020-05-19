@@ -17,48 +17,51 @@ public class CacheData implements Serializable {
     public String key;
     public Status status;
     public Date crt_dt;
-    public Date refresh_dt;  //데이터를 리프레시 하기 위한 만료 시간
-    public Date expire_dt = null;  //데이터가 삭제되는 시간.
-    public int refresh_sec;
-    public int expire_sec;
-    public Date hit_dt;
-    public int hit_cnt;
+    //public Date refresh_dt;  //데이터를 리프레시 하기 위한 만료 시간
+    //public Date expire_dt = null;  //데이터가 삭제되는 시간.
+    public int refresh_ms;
+    public int expire_ms;
+    //public Date hit_dt;
+    //public int hit_cnt;
     public boolean asyncRefresh = true; //리프레시를 비동기로
-    public boolean startNotNull = true; //캐시가 존재하지 않는 경우, null을 반환하지 않고 생성될때까지 대기한후 값을 반환
+    public boolean richStart = true; //캐시가 존재하지 않는 경우, null을 반환하지 않고 생성될때까지 대기한후 값을 반환
 
     private boolean creating = false;
 
-    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        init(key, data, status, new Date(System.currentTimeMillis() + refresh_sec*1000), new Date(System.currentTimeMillis() + expire_sec*1000), asyncRefresh, startNotNull);
+    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean richStart){
+        init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncRefresh, richStart);
     }
 
-    void init(String key, Object data, Status status, Date refresh_dt, Date expire_dt, Boolean asyncRefresh, Boolean startNotNull){
+    public Date getRefresh_dt(){
+        return new Date(System.currentTimeMillis() + refresh_ms);
+    }
+
+    public Date getExpire_dt(){
+        return new Date(System.currentTimeMillis() + expire_ms);
+    }
+
+    public int getRefresh_sec(){
+        return refresh_ms / 1000;
+    }
+
+    public int getExpire_sec(){
+        return expire_ms / 1000;
+    }
+
+    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncRefresh, Boolean richStart){
         this.key = getLimitCacheKey(key);
 
         this.data = data;
-        this.refresh_dt = refresh_dt;
-        this.expire_dt = expire_dt;
+        this.refresh_ms = refresh_ms;
+        this.expire_ms = expire_ms;
 
         this.crt_dt = new Date();
-        this.hit_dt = new Date();
-        this.hit_cnt = 0;
-
-        this.refresh_sec = Long.valueOf((this.refresh_dt.getTime() - System.currentTimeMillis()) / 1000).intValue();
-
-        //삭제시간을 안 넣으면, 기본값 만료시간의 2배
-        if(this.expire_dt != null){
-            this.expire_sec = Long.valueOf((this.expire_dt.getTime() - System.currentTimeMillis()) / 1000).intValue();
-        }
-        else{
-            this.expire_sec = this.refresh_sec * 2;
-            this.expire_dt = new Date( System.currentTimeMillis() + this.expire_sec * 1000 );
-        }
 
         if(asyncRefresh != null)
             this.asyncRefresh = asyncRefresh;
 
-        if(startNotNull != null)
-            this.startNotNull = startNotNull;
+        if(richStart != null)
+            this.richStart = richStart;
 
         this.status = status;
 
@@ -66,11 +69,11 @@ public class CacheData implements Serializable {
     }
 
     public boolean needRefresh(){
-        return this.refresh_dt.getTime() < System.currentTimeMillis();
+        return getRefresh_dt().getTime() < System.currentTimeMillis();
     }
 
     public boolean needForceRefresh(){
-        return (this.refresh_dt.getTime() + 10*1000) < System.currentTimeMillis();
+        return (getRefresh_dt().getTime() + 10*1000) < System.currentTimeMillis();
     }
 
     public <T> T getData(){
@@ -93,14 +96,11 @@ public class CacheData implements Serializable {
     }
 
     public long getExpireSecLeft(){
-        return this.refresh_dt.getTime() - System.currentTimeMillis();
+        return this.getRefresh_dt().getTime() - System.currentTimeMillis();
     }
 
     public Long getDeleteSecLeft(){
-        if(expire_dt == null)
-            return null;
-
-        return this.expire_dt.getTime() - System.currentTimeMillis();
+        return this.getExpire_dt().getTime() - System.currentTimeMillis();
     }
 
     @Override
@@ -110,14 +110,12 @@ public class CacheData implements Serializable {
                 ", key='" + key + '\'' +
                 ", status=" + status +
                 ", crt_dt=" + crt_dt +
-                ", refresh_dt=" + refresh_dt +
-                ", expire_dt=" + expire_dt +
-                ", refresh_sec=" + refresh_sec +
-                ", expire_sec=" + expire_sec +
-                ", hit_dt=" + hit_dt +
-                ", hit_cnt=" + hit_cnt +
+                ", refresh_dt=" + getRefresh_dt() +
+                ", expire_dt=" + getExpire_dt() +
+                ", refresh_sec=" + getRefresh_sec() +
+                ", expire_sec=" + getExpire_sec() +
                 ", asyncRefresh=" + asyncRefresh +
-                ", startNotNull=" + startNotNull +
+                ", richStart=" + richStart +
                 ", creating=" + creating +
                 '}';
     }

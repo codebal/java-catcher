@@ -10,10 +10,10 @@ public class Main {
 
         catcher = Common.getCatcher();
 
-        //multiThreadTest();
+        multiThreadTest();
         //timeoutTest();
         //errorTest();
-        forceRefreshTest();
+        //forceRefreshTest();
     }
 
     static int getCount = 0;
@@ -33,7 +33,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true);
+                                }, true, false);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }

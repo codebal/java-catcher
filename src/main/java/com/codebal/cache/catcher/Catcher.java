@@ -144,8 +144,8 @@ public class Catcher {
             return cacheData.getData();
     }
 
-//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
+//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, richStart);
 //        return createCacheDataAsync(cacheData, supplier);
 //    }
 
@@ -169,7 +169,7 @@ public class Catcher {
     }
 
     @Deprecated
-    public CacheData __getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
+    public CacheData __getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -182,9 +182,9 @@ public class Catcher {
             if(cacheData.needForceRefresh())
                 needCreate = true;
 
-            //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
+            //캐시가 생성중인데 데이터는 없고 richStart가 true 일때
             if(cacheData.isCreating()){
-                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.startNotNull){
+                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.richStart){
                     needWait = true;
                 }
                 else if(!cacheData.asyncRefresh){
@@ -199,7 +199,7 @@ public class Catcher {
         else{
             needCreate = true;
             isNull = true;
-            cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+            cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, richStart);
         }
 
         if(needCreate){ //캐시 생성을 해야 한다
@@ -211,7 +211,7 @@ public class Catcher {
                 if(!isNull && !cacheData.asyncRefresh){ //캐시가 존재하고, 비동기 리프래시를 안한다면
                     async = false;
                 }
-                else if(isNull && cacheData.startNotNull){ //캐시가 존재하지 않고, 캐시를 생성한 후에 받는다면
+                else if(isNull && cacheData.richStart){ //캐시가 존재하지 않고, 캐시를 생성한 후에 받는다면
                     async = false;
                 }
 
@@ -229,10 +229,10 @@ public class Catcher {
 
 
     /**
-     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 startNotNull 값을 true 로 강제할 필요가 있음
+     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 richStart 값을 true 로 강제할 필요가 있음
      */
-    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
+        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, richStart);
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -286,7 +286,7 @@ public class Catcher {
                 if(Action.DIRECT_REFRESH_CACHE.equals(action) && !newCacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
                     async = false;
                 }
-                else if(Action.DIRECT_NEW_CACHE.equals(action) && newCacheData.startNotNull){ //캐시 신규 생성, startNotNull = true
+                else if(Action.DIRECT_NEW_CACHE.equals(action) && newCacheData.richStart){ //캐시 신규 생성, richStart = true
                     async = false;
                 }
 
@@ -342,9 +342,9 @@ public class Catcher {
             if(needCreate)
                 return Action.DIRECT_REFRESH_CACHE;
 
-            //캐시가 생성중인데 데이터는 없고 startNotNull이 false 일때
+            //캐시가 생성중인데 데이터는 없고 richStart이 false 일때
             if(cacheData.isCreating()){
-                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.startNotNull){
+                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.richStart){
                     needWait = true;
                 }
                 else if(!cacheData.asyncRefresh){
@@ -362,8 +362,8 @@ public class Catcher {
         return Action.GET_CACHE_ONLY;
     }
 
-    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean startNotNull){
-        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, startNotNull);
+    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
+        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, richStart);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
@@ -472,7 +472,7 @@ public class Catcher {
 
     public void endCreatingCache(CacheData cacheData){
         if(cacheData != null){
-            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.refresh_sec, cacheData.expire_sec, cacheData.asyncRefresh, cacheData.startNotNull);
+            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncRefresh, cacheData.richStart);
             setCacheData(newCacheData);
         }
     }
