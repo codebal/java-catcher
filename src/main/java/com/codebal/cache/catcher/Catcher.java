@@ -7,8 +7,10 @@ import java.util.function.Supplier;
 
 public class Catcher {
 
-    int waitCreateIntervalMilSec = 500; //캐시가 생성되기 기다리는 시간
-    int waitCreateRetryMaxCnt = 10; //캐시가 생성을 기다리는 최대 재시도 수
+    private int waitCreateIntervalMs = 500; //캐시가 생성되기 기다리는 시간
+    private int waitCreateRetryMaxCnt = 10; //캐시가 생성을 기다리는 최대 재시도 수
+
+    private int forceRefreshTimeoverMs = 1000 * 10; //리프래시 시간이 지난후에도 리프래시가 안되는경우, 강제로 리프래시를 하는 초과시간
 
     int defaultRefreshSec = 60;
     int defaultExpireSec = 60 * 5;
@@ -27,7 +29,7 @@ public class Catcher {
 
     CacheMaker cacheMaker;
 
-    ICatcherSignal iCatcherSignal = null;
+    ICatcherSignal catcherSignal = null;
 
     public Catcher(Function<CacheData, Boolean> cacheResourceSetter, Function<Object, CacheData> cacheResourceGetter){
         this.cacheResourceSetter = cacheResourceSetter;
@@ -36,16 +38,16 @@ public class Catcher {
         cacheMaker = new CacheMaker(this);
     }
 
-    public Catcher(ICatcherSignal iCatcherSignal){
-        this.iCatcherSignal = iCatcherSignal;
+    public Catcher(ICatcherSignal catcherSignal){
+        this.catcherSignal = catcherSignal;
 
         cacheMaker = new CacheMaker(this);
     }
 
     public boolean setCacheData(CacheData cacheData){
         //CacheLogger.debug("--- 캐시입력 : " + cacheData + " ---");
-        if(iCatcherSignal != null)
-            return iCatcherSignal.cacheResourceSetter(cacheData);
+        if(catcherSignal != null)
+            return catcherSignal.cacheResourceSetter(cacheData);
         else
             return cacheResourceSetter.apply(cacheData);
     }
@@ -63,8 +65,8 @@ public class Catcher {
 
     public CacheData getCacheData(String key){
         try{
-            if(iCatcherSignal != null){
-                return iCatcherSignal.cacheResourceGetter(key);
+            if(catcherSignal != null){
+                return catcherSignal.cacheResourceGetter(key);
             }
             else{
                 return cacheResourceGetter.apply(key);
@@ -161,6 +163,7 @@ public class Catcher {
         catch(Exception e){
             e.printStackTrace();
             CacheLogger.error(Catcher.class, e);
+            cacheData = onCacheCreateError(CacheException.make(e, cacheData));
         }
         setCacheData(cacheData);
         endCreatingCache(cacheData);
@@ -521,7 +524,7 @@ public class Catcher {
             }
 
             try{
-                Thread.sleep(waitCreateIntervalMilSec);
+                Thread.sleep(waitCreateIntervalMs);
             }
             catch(Exception e){
                 e.printStackTrace();
@@ -539,5 +542,17 @@ public class Catcher {
 
     public Function<Object, CacheData> getCacheResourceGetter() {
         return cacheResourceGetter;
+    }
+
+    public ICatcherSignal getCatcherSignal() {
+        return catcherSignal;
+    };
+
+    public CacheData onCacheCreateError(CacheException cacheException){
+        if(catcherSignal != null){
+            CacheData handledCacheData = catcherSignal.cacheCreateErrorHandler(cacheException);
+            return handledCacheData;
+        }
+        return cacheException.getCacheData();
     }
 }

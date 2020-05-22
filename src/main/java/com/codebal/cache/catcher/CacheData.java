@@ -33,11 +33,11 @@ public class CacheData implements Serializable {
     }
 
     public Date getRefresh_dt(){
-        return new Date(System.currentTimeMillis() + refresh_ms);
+        return new Date(crt_dt.getTime() + refresh_ms);
     }
 
     public Date getExpire_dt(){
-        return new Date(System.currentTimeMillis() + expire_ms);
+        return new Date(crt_dt.getTime() + expire_ms);
     }
 
     public int getRefresh_sec(){
