@@ -52,17 +52,6 @@ public class Catcher {
             return cacheResourceSetter.apply(cacheData);
     }
 
-    public void setCacheData(Supplier<CacheData> supplier){
-        CacheData cacheData;
-        try{
-            cacheData = supplier.get();
-            setCacheData(cacheData);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-        }
-    }
-
     public CacheData getCacheData(String key){
         try{
             if(catcherSignal != null){
@@ -138,6 +127,21 @@ public class Catcher {
 //        return currentCacheData;
 //    }
 
+    public CacheData updateCacheData(CacheData cacheData, boolean nullable){
+        CacheData targetCacheData = getCacheData(cacheData.key);
+        if(targetCacheData == null)
+            targetCacheData = cacheData;
+        else{
+            if(nullable || cacheData.getData() != null)
+                targetCacheData.setData(cacheData.getData());
+            if(cacheData.status != null)
+                targetCacheData.status = cacheData.status;
+        }
+
+        //여기 하다가 말았다.
+        return cacheData;
+    }
+
     public <T> T get(String key){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
@@ -163,9 +167,9 @@ public class Catcher {
         catch(Exception e){
             e.printStackTrace();
             CacheLogger.error(Catcher.class, e);
-            cacheData = onCacheCreateError(CacheException.make(e, cacheData));
+            cacheData = onCacheCreateError(CacheError.make(e, cacheData));
         }
-        setCacheData(cacheData);
+        //setCacheData(cacheData);
         endCreatingCache(cacheData);
 
         return cacheData;
@@ -297,17 +301,7 @@ public class Catcher {
                     createCacheDataAsync(newCacheData, supplier);
                 }
                 else{ //동기 캐시 생성
-                    try{
-                        Object data = supplier.get();
-                        newCacheData.setData(data);
-                    }
-                    catch(Exception e){
-                        e.printStackTrace();
-                        CacheLogger.error(Catcher.class, e);
-                    }
-                    setCacheData(newCacheData);
-                    endCreatingCache(newCacheData);
-                    cacheData = newCacheData;
+                    cacheData = createCacheDataSync(newCacheData, supplier);
                 }
             }
             else{
@@ -481,6 +475,7 @@ public class Catcher {
     }
 
 
+
     public int getCauchbaseDefaultExpiry(){
         int default_expiry = 60 * 60;
         return default_expiry;
@@ -548,11 +543,11 @@ public class Catcher {
         return catcherSignal;
     };
 
-    public CacheData onCacheCreateError(CacheException cacheException){
+    public CacheData onCacheCreateError(CacheError cacheError){
         if(catcherSignal != null){
-            CacheData handledCacheData = catcherSignal.cacheCreateErrorHandler(cacheException);
+            CacheData handledCacheData = catcherSignal.cacheCreateErrorHandler(cacheError);
             return handledCacheData;
         }
-        return cacheException.getCacheData();
+        return cacheError.getCacheData();
     }
 }

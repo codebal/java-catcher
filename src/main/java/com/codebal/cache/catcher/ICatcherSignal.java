@@ -2,8 +2,8 @@ package com.codebal.cache.catcher;
 
 public interface ICatcherSignal {
     Boolean cacheResourceSetter(CacheData cacheData);
-    CacheData cacheResourceGetter(Object ccData);
+    CacheData cacheResourceGetter(Object cacheKey);
 
-    CacheData cacheCreateErrorHandler(CacheException cacheException);
+    CacheData cacheCreateErrorHandler(CacheError cacheError);
     CacheData waitTimeoverHandler(CacheData cacheData);
 }

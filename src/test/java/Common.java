@@ -1,5 +1,7 @@
 import com.codebal.cache.catcher.CacheData;
+import com.codebal.cache.catcher.CacheError;
 import com.codebal.cache.catcher.Catcher;
+import com.codebal.cache.catcher.ICatcherSignal;
 
 import java.text.SimpleDateFormat;
 import java.util.HashMap;
@@ -11,7 +13,7 @@ public class Common {
     static public int cacheCreateCount = 0;
     static Map<String, Object> cacheResource = new HashMap<>();
 
-    static Catcher getCatcher(){
+    static Catcher getCatcherSimple(){
 
         Common.log("Catcher init");
         Catcher catcher = new Catcher(
@@ -29,6 +31,41 @@ public class Common {
                     return (CacheData)cacheResource.get(cacheKey);
                 }
         );
+        return catcher;
+    }
+
+    static Catcher getCacherWithSignal(){
+        ICatcherSignal iCatcherSignal = new ICatcherSignal() {
+            @Override
+            public Boolean cacheResourceSetter(CacheData cacheData) {
+                try{
+                    cacheResource.put(cacheData.key, cacheData);
+                    return true;
+                }
+                catch(Exception e){
+                    e.printStackTrace();
+                    return false;
+                }
+            }
+
+            @Override
+            public CacheData cacheResourceGetter(Object cacheKey) {
+                return (CacheData)cacheResource.get(cacheKey);
+            }
+
+            @Override
+            public CacheData cacheCreateErrorHandler(CacheError cacheError) {
+                log("에러 발생 했구만");
+                return cacheError.getCacheData();
+            }
+
+            @Override
+            public CacheData waitTimeoverHandler(CacheData cacheData) {
+                return cacheData;
+            }
+        };
+
+        Catcher catcher = new Catcher(iCatcherSignal);
         return catcher;
     }
 

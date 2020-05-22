@@ -2,23 +2,25 @@ import com.codebal.cache.catcher.Catcher;
 
 public class Main {
 
-    static Catcher catcher;
+    static Catcher catcher1, catcher2;
 
     public static void main(String[] args) {
 
         Common.log("Catcher Test Start");
 
-        catcher = Common.getCatcher();
+        catcher1 = Common.getCatcherSimple();
 
-        multiThreadTest();
+        catcher2 = Common.getCacherWithSignal();
+
+        //multiThreadTest();
         //timeoutTest();
-        //errorTest();
+        errorTest(catcher2);
         //forceRefreshTest();
     }
 
     static int getCount = 0;
 
-    static public void multiThreadTest(){
+    static public void multiThreadTest(Catcher catcher){
 
         int count = 0;
         while(count < 3){
@@ -33,7 +35,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true);
+                                }, true, false);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -48,7 +50,7 @@ public class Main {
         }
     }
 
-    static public void timeoutTest(){
+    static public void timeoutTest(Catcher catcher){
         int count = 0;
         while(count < 2){
             Thread request = new Thread(()->{
@@ -76,7 +78,7 @@ public class Main {
         }
     }
 
-    static public void errorTest(){
+    static public void errorTest(Catcher catcher){
         int count = 0;
         while(count < 3){
             Thread request = new Thread(()->{
@@ -86,7 +88,7 @@ public class Main {
                         long st = System.currentTimeMillis();
                         String value = Common.getSetTest(catcher,"key1", Thread.currentThread().getName(), 2000,
                                 ()->{
-                                    int i = 0;
+                                    int i = (int)(Math.random() * 2);
                                     int j = 1/i;
                                     return j;
                                 }, true, false);
@@ -104,7 +106,7 @@ public class Main {
         }
     }
 
-    static public void forceRefreshTest(){
+    static public void forceRefreshTest(Catcher catcher){
         int count = 0;
 
         Thread request1 = new Thread(()->{

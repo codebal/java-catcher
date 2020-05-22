@@ -8,7 +8,7 @@ public class CacheMaker {
     Catcher catcher;
 
     List<CacheThread> cacheRunnerList;
-    int threadIndex = 0;
+    long threadIndex = 0;
 
     public CacheMaker(Catcher catcher){
         this.catcher = catcher;
@@ -37,7 +37,7 @@ public class CacheMaker {
     }
 
     String getThreadName(){
-        return "cacheRunner" + threadIndex++;
+        return "CacheThread-" + threadIndex++;
     }
 
     public CacheData make(CacheData cacheData, Supplier<Object> supplier){

@@ -38,11 +38,11 @@ public class CacheRunner implements Runnable {
         }
         catch(Exception e){
             e.printStackTrace();
-            //CacheLogger.error(this.getClass(), "thread name : " + Thread.currentThread().getName());
             CacheLogger.error(this.getClass(), e);
+            cacheData = catcher.onCacheCreateError(CacheError.make(e, cacheData));
         }
         finally {
-            catcher.cacheResourceSetter.apply(cacheData);
+            //catcher.cacheResourceSetter.apply(cacheData);
             catcher.endCreatingCache(cacheData);
             //CacheLogger.debug(cacheData);
         }

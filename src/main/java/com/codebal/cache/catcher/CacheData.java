@@ -19,8 +19,8 @@ public class CacheData implements Serializable {
     public Date crt_dt;
     //public Date refresh_dt;  //데이터를 리프레시 하기 위한 만료 시간
     //public Date expire_dt = null;  //데이터가 삭제되는 시간.
-    public int refresh_ms;
-    public int expire_ms;
+    public Integer refresh_ms;
+    public Integer expire_ms;
     //public Date hit_dt;
     //public int hit_cnt;
     public boolean asyncRefresh = true; //리프레시를 비동기로
@@ -85,6 +85,11 @@ public class CacheData implements Serializable {
 
     public void setData(Object data) {
         this.data = data;
+    }
+
+    public void refreshData(Object data){
+        crt_dt = new Date();
+        setData(data);
     }
 
     public boolean isCreating() {
