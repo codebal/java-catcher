@@ -20,4 +20,12 @@ public class CacheError {
     public void setCacheData(CacheData cacheData) {
         this.cacheData = cacheData;
     }
+
+    public Exception getException() {
+        return exception;
+    }
+
+    public void setException(Exception exception) {
+        this.exception = exception;
+    }
 }

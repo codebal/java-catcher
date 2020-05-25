@@ -4,6 +4,6 @@ public interface ICatcherSignal {
     Boolean cacheResourceSetter(CacheData cacheData);
     CacheData cacheResourceGetter(Object cacheKey);
 
-    CacheData cacheCreateErrorHandler(CacheError cacheError);
+    CacheData cacheCreateCustomErrorHandler(CacheError cacheError);
     CacheData waitTimeoverHandler(CacheData cacheData);
 }

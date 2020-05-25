@@ -32,19 +32,21 @@ public class CacheRunner implements Runnable {
         //CacheLogger.debug("thread name : " + Thread.currentThread().getName());
         start_dt = new Date(System.currentTimeMillis());
 
-        try{
-            Object data = supplier.get();
-            cacheData.setData(data);
-        }
-        catch(Exception e){
-            e.printStackTrace();
-            CacheLogger.error(this.getClass(), e);
-            cacheData = catcher.onCacheCreateError(CacheError.make(e, cacheData));
-        }
-        finally {
-            //catcher.cacheResourceSetter.apply(cacheData);
-            catcher.endCreatingCache(cacheData);
-            //CacheLogger.debug(cacheData);
-        }
+//        try{
+//            Object data = supplier.get();
+//            cacheData.setData(data);
+//        }
+//        catch(Exception e){
+//            e.printStackTrace();
+//            CacheLogger.error(this.getClass(), e);
+//            cacheData = catcher.onCacheCreateError(new CacheError(e, cacheData));
+//        }
+//        finally {
+//            //catcher.cacheResourceSetter.apply(cacheData);
+//            catcher.endCreatingCache(cacheData);
+//            //CacheLogger.debug(cacheData);
+//        }
+
+        cacheData = catcher.createCacheDataSync(cacheData, supplier);
     }
 }

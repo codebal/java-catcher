@@ -24,6 +24,12 @@ public class Catcher {
         DIRECT_REFRESH_CACHE
     }
 
+    public enum CacheCreateErrorHandle {
+        NULL,
+        REUSE,
+        CUSTOM
+    }
+
     Function<CacheData, Boolean> cacheResourceSetter;
     Function<Object, CacheData> cacheResourceGetter;
 
@@ -155,11 +161,6 @@ public class Catcher {
 //        return createCacheDataAsync(cacheData, supplier);
 //    }
 
-    public CacheData createCacheDataAsync(CacheData cacheData, Supplier<Object> supplier){
-        return cacheMaker.make(cacheData, supplier);
-    }
-
-
     public CacheData createCacheDataSync(CacheData cacheData, Supplier<Object> supplier){
         try{
             cacheData.setData(supplier.get());
@@ -167,7 +168,12 @@ public class Catcher {
         catch(Exception e){
             e.printStackTrace();
             CacheLogger.error(Catcher.class, e);
-            cacheData = onCacheCreateError(CacheError.make(e, cacheData));
+            if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.REUSE)){
+                cacheData = extendCacheTime(cacheData);
+            }
+            else if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.CUSTOM)){
+                cacheData = onCacheCreateError(CacheError.make(e, cacheData));
+            }
         }
         //setCacheData(cacheData);
         endCreatingCache(cacheData);
@@ -175,69 +181,11 @@ public class Catcher {
         return cacheData;
     }
 
-    @Deprecated
-    public CacheData __getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
-        CacheData cacheData = getCacheData(key);
-
-        boolean needCreate = false;
-        boolean isNull = false;
-        boolean needWait = false;
-        if(cacheData != null){
-            if(!cacheData.isCreating() && cacheData.needRefresh())
-                needCreate = true;
-
-            if(cacheData.needForceRefresh())
-                needCreate = true;
-
-            //캐시가 생성중인데 데이터는 없고 richStart가 true 일때
-            if(cacheData.isCreating()){
-                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.richStart){
-                    needWait = true;
-                }
-                else if(!cacheData.asyncRefresh){
-                    needWait = true;
-                }
-            }
-
-            if(needWait){
-                waitCreateCache(cacheData.key);
-            }
-        }
-        else{
-            needCreate = true;
-            isNull = true;
-            cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, richStart);
-        }
-
-        if(needCreate){ //캐시 생성을 해야 한다
-            boolean nowCreating = false;
-            flagStartCreatingCache(cacheData);
-
-            if(nowCreating){
-                boolean async = true;
-                if(!isNull && !cacheData.asyncRefresh){ //캐시가 존재하고, 비동기 리프래시를 안한다면
-                    async = false;
-                }
-                else if(isNull && cacheData.richStart){ //캐시가 존재하지 않고, 캐시를 생성한 후에 받는다면
-                    async = false;
-                }
-
-                if(async){ //비동기 캐시 생성
-                    createCacheDataAsync(cacheData, supplier);
-                }
-                else{ //동기 캐시 생성
-                    createCacheDataSync(cacheData, supplier);
-                }
-            }
-        }
-
-        return cacheData;
+    public CacheData createCacheDataAsync(CacheData cacheData, Supplier<Object> supplier){
+        return cacheMaker.make(cacheData, supplier);
     }
 
 
-    /**
-     * asyncRefresh = true 일때는 모든 요청이 비동기이므로 richStart 값을 true 로 강제할 필요가 있음
-     */
     public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
         CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, richStart);
         CacheData cacheData = getCacheData(key);
@@ -366,84 +314,6 @@ public class Catcher {
         return (T) cacheData.getData();
     }
 
-
-//    public <T> T getSet2(String key, int refresh_sec, int expire_sec, boolean wait_new, Supplier<T> supplier){
-//        CacheData currentCacheData = getCacheData(key);
-//        boolean waitOther = false;
-//        boolean needCreate = false;
-//        boolean async = !wait_new;
-//        T resultData = null;
-//
-//        //--------------  캐시가 있음  ---------------
-//        if(currentCacheData != null){
-//            if(currentCacheData.getData() != null){ //캐시가 있고, 데이타가 있다면 기다릴필요없이 가져다 쓴다.
-//                async = true;
-//                resultData = (T)currentCacheData.getData();
-//            }
-//            else{
-//                needCreate = true;
-//
-//                if(currentCacheData.isCreating() && !async){ // 캐시가 이미 생성중인 상태
-//                    needCreate = false;
-//                    waitOther = true;
-//                }
-//            }
-//
-//            if(!currentCacheData.isCreating() && currentCacheData.needRefresh()) { //캐시 만료시간이 지났다면 다시 만들어 갱신.
-//                needCreate = true;
-//            }
-//
-//            if(currentCacheData.isCreating() && currentCacheData.needForceRefresh()){
-//                needCreate = true;
-//            }
-//        }
-//        //--------------  캐시가 없음  ---------------
-//        else{
-//            needCreate = true;
-//        }
-//
-//        //--------------  캐시 생성 요청  ---------------
-//        if(needCreate){
-//            //동기식
-//            if(!async){
-//                CacheLogger.debug("--- 캐시생성 동기: " + key + " ---");
-//                flagStartCreatingCache(key, refresh_sec, expire_sec);
-//                currentCacheData = createCacheData(key, ()->{
-//                    T data = supplier.get();
-//                    CacheData cacheData = new CacheData(key, data, refresh_sec, expire_sec, null, null);
-//                    setCacheData(cacheData);
-//                    return cacheData;
-//                });
-//                resultData = currentCacheData.getData();
-//            }
-//            //비동기식
-//            else{
-//                boolean canStart = flagStartCreatingCache(key, refresh_sec, expire_sec);
-//                if(canStart){
-//                    CacheLogger.debug("--- 캐시생성 비동기: " + key + " ---");
-//                    this.setCacheData(()->{
-//                        CacheData cacheData = createCacheData(key, ()->{
-//                            T data = supplier.get();
-//                            CacheData newCacheData = new CacheData(key, data, refresh_sec, expire_sec, null, null);
-//                            return newCacheData;
-//                        });
-//                        return cacheData;
-//                    });
-//                }
-//            }
-//        }
-//        //--------------  캐시 생성 요청없음  ---------------
-//        else{
-//            if(waitOther){
-//                CacheData cd = waitCreateCache(key);
-//                resultData = cd.getData();
-//
-//            }
-//        }
-//
-//        return resultData;
-//    }
-
     public void flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
@@ -474,11 +344,16 @@ public class Catcher {
         }
     }
 
-
-
-    public int getCauchbaseDefaultExpiry(){
-        int default_expiry = 60 * 60;
-        return default_expiry;
+    public CacheData extendCacheTime(CacheData cacheData){
+        CacheData curCacheData = getCacheData(cacheData.key);
+        if(curCacheData != null){
+            endCreatingCache(curCacheData);
+            return curCacheData;
+        }
+        else{
+            CacheLogger.error(this.getClass(), "extending cache time is fail. cache(" + cacheData.key + ") is null.");
+            return cacheData;
+        }
     }
 
     public <T> T createCacheData(String key, Supplier<T> supplier){
@@ -545,7 +420,7 @@ public class Catcher {
 
     public CacheData onCacheCreateError(CacheError cacheError){
         if(catcherSignal != null){
-            CacheData handledCacheData = catcherSignal.cacheCreateErrorHandler(cacheError);
+            CacheData handledCacheData = catcherSignal.cacheCreateCustomErrorHandler(cacheError);
             return handledCacheData;
         }
         return cacheError.getCacheData();

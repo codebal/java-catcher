@@ -25,8 +25,9 @@ public class CacheData implements Serializable {
     //public int hit_cnt;
     public boolean asyncRefresh = true; //리프레시를 비동기로
     public boolean richStart = true; //캐시가 존재하지 않는 경우, null을 반환하지 않고 생성될때까지 대기한후 값을 반환
-
     private boolean creating = false;
+
+    private Catcher.CacheCreateErrorHandle cacheCreateErrorHandle;
 
     public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean richStart){
         init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncRefresh, richStart);
@@ -64,6 +65,8 @@ public class CacheData implements Serializable {
             this.richStart = richStart;
 
         this.status = status;
+
+        this.cacheCreateErrorHandle = Catcher.CacheCreateErrorHandle.REUSE;
 
         //toString();
     }
@@ -108,6 +111,14 @@ public class CacheData implements Serializable {
         return this.getExpire_dt().getTime() - System.currentTimeMillis();
     }
 
+    public Catcher.CacheCreateErrorHandle getCacheCreateErrorHandle() {
+        return cacheCreateErrorHandle;
+    }
+
+    public void setCacheCreateErrorHandle(Catcher.CacheCreateErrorHandle cacheCreateErrorHandle) {
+        this.cacheCreateErrorHandle = cacheCreateErrorHandle;
+    }
+
     @Override
     public String toString() {
         return "CacheData{" +
@@ -122,6 +133,7 @@ public class CacheData implements Serializable {
                 ", asyncRefresh=" + asyncRefresh +
                 ", richStart=" + richStart +
                 ", creating=" + creating +
+                ", cacheCreateErrorHandle=" + cacheCreateErrorHandle +
                 '}';
     }
 

@@ -54,7 +54,7 @@ public class Common {
             }
 
             @Override
-            public CacheData cacheCreateErrorHandler(CacheError cacheError) {
+            public CacheData cacheCreateCustomErrorHandler(CacheError cacheError) {
                 log("에러 발생 했구만");
                 return cacheError.getCacheData();
             }
