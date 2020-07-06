@@ -7,13 +7,13 @@ import java.util.function.Supplier;
 
 public class Catcher {
 
-    private int waitCreateIntervalMs = 500; //캐시가 생성되기 기다리는 시간
-    private int waitCreateRetryMaxCnt = 10; //캐시가 생성을 기다리는 최대 재시도 수
+    private int waitCreateIntervalMs = 100; //캐시가 생성되기 기다리는 시간
+    private int waitCreateRetryMaxCnt = 50; //캐시가 생성을 기다리는 최대 재시도 수
 
-    private int forceRefreshTimeoverMs = 1000 * 10; //리프래시 시간이 지난후에도 리프래시가 안되는경우, 강제로 리프래시를 하는 초과시간
+    //private int forceRefreshTimeoverMs = 1000 * 10; //리프래시 시간이 지난후에도 리프래시가 안되는경우, 강제로 리프래시를 하는 초과시간
 
-    int defaultRefreshSec = 60;
-    int defaultExpireSec = 60 * 5;
+    //int defaultRefreshSec = 60;
+    //int defaultExpireSec = 60 * 5;
 
     boolean async = true;
 
@@ -156,8 +156,8 @@ public class Catcher {
             return cacheData.getData();
     }
 
-//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
-//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, richStart);
+//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
+//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
 //        return createCacheDataAsync(cacheData, supplier);
 //    }
 
@@ -186,8 +186,8 @@ public class Catcher {
     }
 
 
-    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
-        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, richStart);
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
+        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -241,7 +241,7 @@ public class Catcher {
                 if(Action.DIRECT_REFRESH_CACHE.equals(action) && !newCacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
                     async = false;
                 }
-                else if(Action.DIRECT_NEW_CACHE.equals(action) && newCacheData.richStart){ //캐시 신규 생성, richStart = true
+                else if(Action.DIRECT_NEW_CACHE.equals(action) && !newCacheData.nonBlocking){ //캐시 신규 생성, nonBlocking = false
                     async = false;
                 }
 
@@ -287,9 +287,9 @@ public class Catcher {
             if(needCreate)
                 return Action.DIRECT_REFRESH_CACHE;
 
-            //캐시가 생성중인데 데이터는 없고 richStart이 false 일때
+            //캐시가 생성중인데 데이터는 없고 nonBlocking이 false 일때
             if(cacheData.isCreating()){
-                if(cacheData.status.equals(CacheData.Status.NEW) && cacheData.richStart){
+                if(cacheData.status.equals(CacheData.Status.NEW) && !cacheData.nonBlocking){
                     needWait = true;
                 }
                 else if(!cacheData.asyncRefresh){
@@ -307,8 +307,8 @@ public class Catcher {
         return Action.GET_CACHE_ONLY;
     }
 
-    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean richStart){
-        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, richStart);
+    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking) {
+        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
@@ -339,7 +339,7 @@ public class Catcher {
 
     public void endCreatingCache(CacheData cacheData){
         if(cacheData != null){
-            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncRefresh, cacheData.richStart);
+            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncRefresh, cacheData.nonBlocking);
             setCacheData(newCacheData);
         }
     }
@@ -385,15 +385,16 @@ public class Catcher {
             if(cacheData != null && !cacheData.isCreating()){
                 return cacheData;
             }
-            CacheLogger.trace(this.getClass(), "wait for creating cache / key:" + key + " ---");
+            CacheLogger.trace(this.getClass(), "wait for creating cache / key:" + key + " --|");
 
             if(tryCnt > waitCreateRetryMaxCnt){
-                CacheLogger.error(this.getClass(), "cache waiting too long / count:" + tryCnt + ", key:" + key + " ---" );
+                CacheLogger.error(this.getClass(), "waiting for cache creating overtime / count:" + tryCnt + ", key:" + key + " --|" );
                 flagFinishCreatingCache(cacheData);
                 return cacheData;
             }
 
             try{
+                CacheLogger.debug(this.getClass(), "thread [" + Thread.currentThread().getName() + "] sleep (" + waitCreateIntervalMs + "/" + tryCnt + ") waiting for cache creating ");
                 Thread.sleep(waitCreateIntervalMs);
             }
             catch(Exception e){
@@ -424,5 +425,21 @@ public class Catcher {
             return handledCacheData;
         }
         return cacheError.getCacheData();
+    }
+
+    public int getWaitCreateIntervalMs() {
+        return waitCreateIntervalMs;
+    }
+
+    public void setWaitCreateIntervalMs(int waitCreateIntervalMs) {
+        this.waitCreateIntervalMs = waitCreateIntervalMs;
+    }
+
+    public int getWaitCreateRetryMaxCnt() {
+        return waitCreateRetryMaxCnt;
+    }
+
+    public void setWaitCreateRetryMaxCnt(int waitCreateRetryMaxCnt) {
+        this.waitCreateRetryMaxCnt = waitCreateRetryMaxCnt;
     }
 }

@@ -31,6 +31,9 @@ public class Common {
                     return (CacheData)cacheResource.get(cacheKey);
                 }
         );
+        catcher.setWaitCreateIntervalMs(100);
+        catcher.setWaitCreateRetryMaxCnt(10);
+        
         return catcher;
     }
 
@@ -69,7 +72,7 @@ public class Common {
         return catcher;
     }
 
-    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean richStart){
+    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean nonBlocking){
         //int refresh_sec = (int)(Math.random() * 3) + 3;
         int refresh_sec = 3;
         CacheData cacheData = catcher.getSetCacheData(key, ()->{
@@ -88,9 +91,9 @@ public class Common {
                 e.printStackTrace();
                 return "error";
             }
-        }, refresh_sec, 100, asyncRefresh, richStart);
+        }, refresh_sec, 100, asyncRefresh, nonBlocking);
         //log("refresh_sec:" + refresh_sec);
-        log(cacheData.toString());
+        //log(cacheData.toString());
         return cacheData.getData();
     }
 

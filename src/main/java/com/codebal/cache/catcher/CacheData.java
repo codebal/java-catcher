@@ -5,6 +5,8 @@ import java.util.Date;
 
 public class CacheData implements Serializable {
 
+    private static final long serialVersionUID = 1L;
+
     static final int KEY_MAX_LENGTH = 200;
 
     public enum Status {
@@ -24,13 +26,13 @@ public class CacheData implements Serializable {
     //public Date hit_dt;
     //public int hit_cnt;
     public boolean asyncRefresh = true; //리프레시를 비동기로
-    public boolean richStart = true; //캐시가 존재하지 않는 경우, null을 반환하지 않고 생성될때까지 대기한후 값을 반환
+    public boolean nonBlocking = false; //true: 캐시 존재여부 상관없이 값을 리턴, false: 캐시가 존재하지 않을경우 생성될때 까지 대기한후 리턴
     private boolean creating = false;
 
     private Catcher.CacheCreateErrorHandle cacheCreateErrorHandle;
 
-    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean richStart){
-        init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncRefresh, richStart);
+    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
+        init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncRefresh, nonBlocking);
     }
 
     public Date getRefresh_dt(){
@@ -49,7 +51,7 @@ public class CacheData implements Serializable {
         return expire_ms / 1000;
     }
 
-    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncRefresh, Boolean richStart){
+    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncRefresh, Boolean nonBlocking){
         this.key = getLimitCacheKey(key);
 
         this.data = data;
@@ -61,8 +63,8 @@ public class CacheData implements Serializable {
         if(asyncRefresh != null)
             this.asyncRefresh = asyncRefresh;
 
-        if(richStart != null)
-            this.richStart = richStart;
+        if(nonBlocking != null)
+            this.nonBlocking = nonBlocking;
 
         this.status = status;
 
@@ -131,7 +133,7 @@ public class CacheData implements Serializable {
                 ", refresh_sec=" + getRefresh_sec() +
                 ", expire_sec=" + getExpire_sec() +
                 ", asyncRefresh=" + asyncRefresh +
-                ", richStart=" + richStart +
+                ", nonBlocking=" + nonBlocking +
                 ", creating=" + creating +
                 ", cacheCreateErrorHandle=" + cacheCreateErrorHandle +
                 '}';
