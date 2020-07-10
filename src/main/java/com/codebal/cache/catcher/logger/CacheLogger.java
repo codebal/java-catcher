@@ -83,9 +83,9 @@ public class CacheLogger {
             if(!isDebugMode()) return;
         }
 
-        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:sss");
+        SimpleDateFormat format = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String date = format.format(System.currentTimeMillis());
-        System.out.println(date + " - " + cls.getName() + " - " + msg);
+        System.out.println(date + " [" + Thread.currentThread().getName() + "] - " + cls.getName() + " - " + msg);
     }
 
     static boolean isExistClass(String className){

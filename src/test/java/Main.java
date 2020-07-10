@@ -12,9 +12,9 @@ public class Main {
 
         catcher2 = Common.getCacherWithSignal();
 
-        multiThreadTest(catcher1);
+        //multiThreadTest(catcher1);
         //timeoutTest();
-        //errorTest(catcher2);
+        errorTest(catcher2);
         //forceRefreshTest();
     }
 
@@ -35,7 +35,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, false);
+                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -63,7 +63,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true);
+                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -91,7 +91,7 @@ public class Main {
                                     int i = (int)(Math.random() * 2);
                                     int j = 1/i;
                                     return j;
-                                }, true, false);
+                                }, true, false, Catcher.CacheCreateErrorHandle.CUSTOM);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -116,7 +116,7 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true);
+                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-1");
@@ -136,7 +136,7 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true);
+                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-2");
@@ -156,7 +156,7 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true);
+                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-3");

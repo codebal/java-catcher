@@ -54,7 +54,7 @@ public class CacheMaker {
     }
 
     public void removeCacheRunner(String thread_name){
-        CacheThread removeCacheThread = null;
+//        CacheThread removeCacheThread = null;
 //        for(CacheThread crThread : cacheRunnerList){
 //
 //        }

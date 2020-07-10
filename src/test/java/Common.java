@@ -31,8 +31,8 @@ public class Common {
                     return (CacheData)cacheResource.get(cacheKey);
                 }
         );
-        catcher.setWaitCreateIntervalMs(100);
-        catcher.setWaitCreateRetryMaxCnt(10);
+        // catcher.setWaitCreateIntervalMs(200);
+        // catcher.setWaitCreateRetryMaxCnt(2);
         
         return catcher;
     }
@@ -59,6 +59,7 @@ public class Common {
             @Override
             public CacheData cacheCreateCustomErrorHandler(CacheError cacheError) {
                 log("에러 발생 했구만");
+                cacheError.getCacheData().setData("아 에러났네. 망했네.");
                 return cacheError.getCacheData();
             }
 
@@ -72,7 +73,7 @@ public class Common {
         return catcher;
     }
 
-    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncRefresh, boolean nonBlocking){
+    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncUpdate, boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
         //int refresh_sec = (int)(Math.random() * 3) + 3;
         int refresh_sec = 3;
         CacheData cacheData = catcher.getSetCacheData(key, ()->{
@@ -91,14 +92,14 @@ public class Common {
                 e.printStackTrace();
                 return "error";
             }
-        }, refresh_sec, 100, asyncRefresh, nonBlocking);
+        }, refresh_sec, 100, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         //log("refresh_sec:" + refresh_sec);
-        //log(cacheData.toString());
+        log(cacheData.toString());
         return cacheData.getData();
     }
 
     static void log(String msg){
-        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("HH:mm:ss.SSS");
+        SimpleDateFormat simpleDateFormat = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSS");
         String nowTime = simpleDateFormat.format(System.currentTimeMillis());
         System.out.println(nowTime + " [" + Thread.currentThread().getName() + "] - " + msg);
     }

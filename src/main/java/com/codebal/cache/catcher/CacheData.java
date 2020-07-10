@@ -25,14 +25,14 @@ public class CacheData implements Serializable {
     public Integer expire_ms;
     //public Date hit_dt;
     //public int hit_cnt;
-    public boolean asyncRefresh = true; //리프레시를 비동기로
-    public boolean nonBlocking = false; //true: 캐시 존재여부 상관없이 값을 리턴, false: 캐시가 존재하지 않을경우 생성될때 까지 대기한후 리턴
+    public boolean asyncUpdate = true; //리프레시를 비동기로
+    public boolean asyncNew = false; //true: 캐시 존재여부 상관없이 값을 리턴, false: 캐시가 존재하지 않을경우 생성될때 까지 대기한후 리턴
     private boolean creating = false;
 
-    private Catcher.CacheCreateErrorHandle cacheCreateErrorHandle;
+    public Catcher.CacheCreateErrorHandle cacheCreateErrorHandle;
 
-    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
-        init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncRefresh, nonBlocking);
+    public CacheData(String key, Object data, Status status, int refresh_sec, int expire_sec, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
+        init(key, data, status, refresh_sec*1000, expire_sec*1000, asyncUpdate, asyncNew, cacheCreateErrorHandle);
     }
 
     public Date getRefresh_dt(){
@@ -51,7 +51,7 @@ public class CacheData implements Serializable {
         return expire_ms / 1000;
     }
 
-    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncRefresh, Boolean nonBlocking){
+    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
         this.key = getLimitCacheKey(key);
 
         this.data = data;
@@ -60,15 +60,17 @@ public class CacheData implements Serializable {
 
         this.crt_dt = new Date();
 
-        if(asyncRefresh != null)
-            this.asyncRefresh = asyncRefresh;
+        if(asyncUpdate != null)
+            this.asyncUpdate = asyncUpdate;
 
-        if(nonBlocking != null)
-            this.nonBlocking = nonBlocking;
+        if(asyncNew != null)
+            this.asyncNew = asyncNew;
 
         this.status = status;
 
-        this.cacheCreateErrorHandle = Catcher.CacheCreateErrorHandle.REUSE;
+        this.cacheCreateErrorHandle = cacheCreateErrorHandle;
+        if(this.cacheCreateErrorHandle == null)
+            this.cacheCreateErrorHandle = Catcher.CacheCreateErrorHandle.REUSE;
 
         //toString();
     }
@@ -132,8 +134,8 @@ public class CacheData implements Serializable {
                 ", expire_dt=" + getExpire_dt() +
                 ", refresh_sec=" + getRefresh_sec() +
                 ", expire_sec=" + getExpire_sec() +
-                ", asyncRefresh=" + asyncRefresh +
-                ", nonBlocking=" + nonBlocking +
+                ", asyncUpdate=" + asyncUpdate +
+                ", asyncNew=" + asyncNew +
                 ", creating=" + creating +
                 ", cacheCreateErrorHandle=" + cacheCreateErrorHandle +
                 '}';

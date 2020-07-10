@@ -111,7 +111,7 @@ public class Catcher {
 //        }
 //
 //        if(needCreate){
-//            if(cacheData.asyncRefresh){
+//            if(cacheData.asyncUpdate){
 //                currentCacheData = createCacheData(cacheData.key, ()->{
 //                    CacheData newCacheData = supplier.get();
 //                    setCacheData(cacheData);
@@ -156,8 +156,8 @@ public class Catcher {
             return cacheData.getData();
     }
 
-//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
-//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
+//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew){
+//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncUpdate, asyncNew);
 //        return createCacheDataAsync(cacheData, supplier);
 //    }
 
@@ -186,8 +186,8 @@ public class Catcher {
     }
 
 
-    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking){
-        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
+        CacheData newCacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         CacheData cacheData = getCacheData(key);
 
         boolean needCreate = false;
@@ -238,10 +238,10 @@ public class Catcher {
 
             if(directCreating){
                 boolean async = true;
-                if(Action.DIRECT_REFRESH_CACHE.equals(action) && !newCacheData.asyncRefresh){ //캐시 리프래시, asyncRefresh = false
+                if(Action.DIRECT_REFRESH_CACHE.equals(action) && !newCacheData.asyncUpdate){ //캐시 리프래시, asyncUpdate = false
                     async = false;
                 }
-                else if(Action.DIRECT_NEW_CACHE.equals(action) && !newCacheData.nonBlocking){ //캐시 신규 생성, nonBlocking = false
+                else if(Action.DIRECT_NEW_CACHE.equals(action) && !newCacheData.asyncNew){ //캐시 신규 생성, asyncNew = false
                     async = false;
                 }
 
@@ -287,12 +287,12 @@ public class Catcher {
             if(needCreate)
                 return Action.DIRECT_REFRESH_CACHE;
 
-            //캐시가 생성중인데 데이터는 없고 nonBlocking이 false 일때
+            //캐시가 생성중인데 데이터는 없고 asyncNew이 false 일때
             if(cacheData.isCreating()){
-                if(cacheData.status.equals(CacheData.Status.NEW) && !cacheData.nonBlocking){
+                if(cacheData.status.equals(CacheData.Status.NEW) && !cacheData.asyncNew){
                     needWait = true;
                 }
-                else if(!cacheData.asyncRefresh){
+                else if(!cacheData.asyncUpdate){
                     needWait = true;
                 }
             }
@@ -307,8 +307,8 @@ public class Catcher {
         return Action.GET_CACHE_ONLY;
     }
 
-    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncRefresh, Boolean nonBlocking) {
-        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncRefresh, nonBlocking);
+    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle) {
+        CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
@@ -317,7 +317,7 @@ public class Catcher {
     public void flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
-            cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null);
+            cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null, null);
 
         flagStartCreatingCache(cacheData);
     }
@@ -337,17 +337,21 @@ public class Catcher {
         endCreatingCache(getCacheData(key));
     }
 
-    public void endCreatingCache(CacheData cacheData){
+    public CacheData endCreatingCache(CacheData cacheData){
+        CacheData newCacheData = null;
         if(cacheData != null){
-            CacheData newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncRefresh, cacheData.nonBlocking);
+            newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncUpdate, cacheData.asyncNew, cacheData.cacheCreateErrorHandle);
             setCacheData(newCacheData);
         }
+
+        return newCacheData;
     }
 
     public CacheData extendCacheTime(CacheData cacheData){
         CacheData curCacheData = getCacheData(cacheData.key);
         if(curCacheData != null){
-            endCreatingCache(curCacheData);
+            CacheData endCacheData = endCreatingCache(curCacheData);
+            CacheLogger.debug(this.getClass(), "extending cache time is success. cache(" + cacheData.key + ") : " + endCacheData);
             return curCacheData;
         }
         else{

@@ -68,7 +68,7 @@ public class SimpleTest {
             catch(Exception e){
                 return "error";
             }
-        }, 5, 100, true, true);
+        }, 5, 100, true, true, null);
     }
 
     static void log(String msg){
