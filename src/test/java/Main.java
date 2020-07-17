@@ -13,7 +13,7 @@ public class Main {
         catcher2 = Common.getCacherWithSignal();
 
         //multiThreadTest(catcher1);
-        //timeoutTest();
+        //timeoutTest(catcher2);
         errorTest(catcher2);
         //forceRefreshTest();
     }
@@ -91,7 +91,7 @@ public class Main {
                                     int i = (int)(Math.random() * 2);
                                     int j = 1/i;
                                     return j;
-                                }, true, false, Catcher.CacheCreateErrorHandle.CUSTOM);
+                                }, true, false, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
