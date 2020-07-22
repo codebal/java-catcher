@@ -12,10 +12,10 @@ public class Main {
 
         catcher2 = Common.getCacherWithSignal();
 
-        //multiThreadTest(catcher1);
+        multiThreadTest(catcher1);
         //timeoutTest(catcher2);
         //errorTest(catcher2);
-        forceRefreshTest(catcher2);
+        //forceRefreshTest(catcher2);
     }
 
     static int getCount = 0;

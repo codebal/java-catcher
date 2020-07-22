@@ -94,7 +94,7 @@ public class Common {
             }
         }, refresh_sec, 100, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         //log("refresh_sec:" + refresh_sec);
-        log(cacheData.toString());
+        //log(cacheData.toString());
         return cacheData.getData();
     }
 

@@ -18,7 +18,7 @@ public class BindSlf4j {
         else if(CacheLogger.Level.ERROR.equals(level)){
             logger.error(msg);
         }
-        else if(CacheLogger.Level.WARNING.equals(level)){
+        else if(CacheLogger.Level.WARN.equals(level)){
             logger.warn(msg);
         }
     }

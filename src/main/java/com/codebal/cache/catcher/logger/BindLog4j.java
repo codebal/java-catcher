@@ -16,7 +16,7 @@ public class BindLog4j {
         else if (CacheLogger.Level.ERROR.equals(level)) {
             Logger.getLogger(cls).error(msg);
         }
-        else if (CacheLogger.Level.WARNING.equals(level)) {
+        else if (CacheLogger.Level.WARN.equals(level)) {
             Logger.getLogger(cls).warn(msg);
         }
     }

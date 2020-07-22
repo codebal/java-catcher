@@ -6,7 +6,7 @@
 
     <groupId>com.codebal.cache</groupId>
     <artifactId>catcher</artifactId>
-    <version>0.1.11</version>
+    <version>0.2.0</version>
 
     <name>Catcher</name>
     <description>Java Cache Manager (multi request, async refresh, ...)</description>

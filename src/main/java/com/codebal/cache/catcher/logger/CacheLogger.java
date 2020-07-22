@@ -7,7 +7,7 @@ public class CacheLogger {
         TRACE,
         DEBUG,
         INFO,
-        WARNING,
+        WARN,
         ERROR
     }
 
@@ -27,7 +27,7 @@ public class CacheLogger {
     }
 
     static public void warn(Class cls, Object msg){
-        showLog(cls, Level.WARNING, msg);
+        showLog(cls, Level.WARN, msg);
     }
 
     static public void error(Class cls, Object msg){
