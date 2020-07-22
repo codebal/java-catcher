@@ -2,13 +2,10 @@ package com.codebal.cache.catcher;
 
 import java.io.Serializable;
 import java.util.Date;
-import com.codebal.cache.catcher.logger.CacheLogger;
 
 public class CacheData implements Serializable {
 
     private static final long serialVersionUID = 1L;
-
-    static final int KEY_MAX_LENGTH = 200;
 
     public enum Status {
         NEW,
@@ -20,17 +17,17 @@ public class CacheData implements Serializable {
     private Object data = null;
     public String key;
     public Status status;
-    public Date create_dt = null; //캐시 생성 시간
-    public Date update_dt = null; //캐시 변경 시간
+    public Date create_dt = null; //캐시 생성 완료 시간
+    public Date upInfo_dt = null; //캐시 정보 변경 시간
     //public Date update_dt;  //데이터를 리프레시 하기 위한 만료 시간
     //public Date expire_dt = null;  //데이터가 삭제되는 시간.
-    public Integer refresh_ms;
+    public Integer update_ms;
     public Integer expire_ms;
     //public Date hit_dt;
     //public int hit_cnt;
-    public boolean asyncUpdate = true; //리프레시를 비동기로
-    public boolean asyncNew = false; //true: 캐시 존재여부 상관없이 값을 리턴, false: 캐시가 존재하지 않을경우 생성될때 까지 대기한후 리턴
-    private boolean creating = false;
+    public boolean asyncNew = false; //최초 캐시 생성을 비동기로
+    public boolean asyncUpdate = true; //캐시 갱신을 비동기로
+    //private boolean creating = false;
 
     public Catcher.CacheCreateErrorHandle cacheCreateErrorHandle;
 
@@ -45,13 +42,13 @@ public class CacheData implements Serializable {
         setData(oldCacheData.getData());
         status = oldCacheData.status;
         create_dt = oldCacheData.create_dt;
-        update_dt = oldCacheData.update_dt;
+        upInfo_dt = oldCacheData.upInfo_dt;
     }
 
     public Date getNextUpdate_dt(){
         if(create_dt == null)
             return null;
-        return new Date(create_dt.getTime() + refresh_ms);
+        return new Date(create_dt.getTime() + update_ms);
     }
 
     public Date getExpire_dt(){
@@ -61,18 +58,18 @@ public class CacheData implements Serializable {
     }
 
     public int getRefresh_sec(){
-        return refresh_ms / 1000;
+        return update_ms / 1000;
     }
 
     public int getExpire_sec(){
         return expire_ms / 1000;
     }
 
-    void init(String key, Object data, Status status, int refresh_ms, int expire_ms, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
-        this.key = getLimitCacheKey(key);
+    void init(String key, Object data, Status status, int update_ms, int expire_ms, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
+        this.key = Catcher.getLimitCacheKey(key);
 
         this.data = data;
-        this.refresh_ms = refresh_ms;
+        this.update_ms = update_ms;
         this.expire_ms = expire_ms;
 
         if(asyncUpdate != null)
@@ -113,7 +110,7 @@ public class CacheData implements Serializable {
         if(set_create_dt)
             create_dt = new Date();
         if(set_update_dt)
-            update_dt = new Date();
+            upInfo_dt = new Date();
     }
 
     public <T> T getData(){
@@ -155,6 +152,10 @@ public class CacheData implements Serializable {
         return status.equals(Status.NEW_CREATING);
     }
 
+    public boolean isBusyNow(){
+        return isCreating() || isNewCreating();
+    }
+
     public long getExpireSecLeft(){
         if(getNextUpdate_dt() == null)
             return 0;
@@ -182,24 +183,15 @@ public class CacheData implements Serializable {
                 ", key='" + key + '\'' +
                 ", status=" + status +
                 ", create_dt=" + create_dt +
-                ", update_dt=" + getNextUpdate_dt() +
+                ", upInfo_dt=" + upInfo_dt +
+                ", nextUpdate_dt=" + getNextUpdate_dt() +
                 ", expire_dt=" + getExpire_dt() +
                 ", refresh_sec=" + getRefresh_sec() +
                 ", expire_sec=" + getExpire_sec() +
                 ", asyncUpdate=" + asyncUpdate +
                 ", asyncNew=" + asyncNew +
-                ", creating=" + creating +
                 ", cacheCreateErrorHandle=" + cacheCreateErrorHandle +
                 '}';
-    }
-
-    static public String getLimitCacheKey(String key){
-        if(key.length() > KEY_MAX_LENGTH){
-            return key.substring(0, KEY_MAX_LENGTH-1);
-        }
-        else{
-            return key;
-        }
     }
 
 

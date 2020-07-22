@@ -8,6 +8,10 @@ public class CacheError {
         return new CacheError(exception, cacheData);
     }
 
+    static CacheError make(String errMsg, CacheData cacheData ){
+        return new CacheError(new Exception(errMsg), cacheData);
+    }
+
     public CacheError(Exception exception, CacheData cacheData){
         this.exception = exception;
         this.cacheData = cacheData;

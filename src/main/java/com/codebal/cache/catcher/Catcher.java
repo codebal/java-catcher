@@ -1,12 +1,15 @@
 package com.codebal.cache.catcher;
 
-import com.codebal.cache.catcher.logger.CacheLogger;
-
-import java.util.Date;
 import java.util.function.Function;
 import java.util.function.Supplier;
 
+import com.codebal.cache.catcher.logger.CacheLogger;
+
 public class Catcher {
+
+    static String ver = "0.2.0";
+
+    static final int KEY_MAX_LENGTH = 200;
 
     private int waitCreateIntervalMs = 100; //캐시가 생성되기 기다리는 시간
     private int waitCreateRetryMaxCnt = 50; //캐시가 생성을 기다리는 최대 재시도 수
@@ -99,40 +102,6 @@ public class Catcher {
 //        }
     }
 
-//    public CacheData getSetCacheData(CacheData cacheData, Supplier<CacheData> supplier){
-//        CacheData currentCacheData = this.getCacheData(cacheData.key);
-//
-//        boolean needCreate = false;
-//        if(cacheData != null){
-//            if(!cacheData.isCreating() && cacheData.needRefresh())
-//                needCreate = true;
-//        }
-//        else{
-//            needCreate = true;
-//        }
-//
-//        if(needCreate){
-//            if(cacheData.asyncUpdate){
-//                currentCacheData = createCacheData(cacheData.key, ()->{
-//                    CacheData newCacheData = supplier.get();
-//                    setCacheData(cacheData);
-//                    return cacheData;
-//                });
-//            }
-//            else{
-//                createCacheData(cacheData.key, ()->{
-//                    this.setCacheData(supplier);
-//                    return null;
-//                });
-//            }
-//        }
-//        else{
-//            if(wait && currentCacheData.isCreating())
-//                waitCreateCache(cacheData.key);
-//        }
-//
-//        return currentCacheData;
-//    }
 
     public CacheData updateCacheData(CacheData cacheData, boolean nullable){
         CacheData targetCacheData = getCacheData(cacheData.key);
@@ -166,20 +135,11 @@ public class Catcher {
         try{
             Object data = supplier.get();
             cacheData.setData(data);
+            endCreatingCache(cacheData);
         }
         catch(Exception e){
-            e.printStackTrace();
-            CacheLogger.error(Catcher.class, e);
-            if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.REUSE)){
-                cacheData = extendCacheTime(cacheData);
-            }
-            else if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.CUSTOM)){
-                cacheData = onCacheCreateError(CacheError.make(e, cacheData));
-            }
+            cacheData = onCacheError(CacheError.make(e, cacheData));
         }
-        //setCacheData(cacheData);
-        endCreatingCache(cacheData);
-
         return cacheData;
     }
 
@@ -188,7 +148,7 @@ public class Catcher {
     }
 
 
-    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
+    public CacheData getSetCacheData(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncNew, Boolean asyncUpdate, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
         CacheData cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         CacheData _oldCacheData = getCacheData(key);
 
@@ -203,6 +163,7 @@ public class Catcher {
         boolean needWait = false;
 
         CacheAction action = getAction(cacheData);
+
         if(CacheAction.WAIT.equals(action)){
             needWait = true;
         }
@@ -306,24 +267,28 @@ public class Catcher {
             need_wait = true;
         }
 
-        //CacheLogger.trace(this.getClass(), "get action : " + cacheData);
+        CacheAction action;
+
+        if(need_create && need_wait){
+            action = CacheAction.CREATE_AND_WAIT;
+        }
+        else if(need_create){
+            action = CacheAction.GET_AND_CREATE_ASYNC;
+        }
+        else if(need_wait){
+            action = CacheAction.WAIT;
+        }
+        else{
+            action = CacheAction.GET;
+        }
+
+        // CacheLogger.trace(this.getClass(), "before action select: " + cacheData);
+        // CacheLogger.trace(this.getClass(), "result action : " + action);
         // CacheLogger.trace(this.getClass(), "cacheData.needRefresh(): " + cacheData.needRefresh());
         // CacheLogger.trace(this.getClass(), "cacheData.create_dt: " + cacheData.create_dt);
         // CacheLogger.trace(this.getClass(), "cacheData.update_dt: " + cacheData.update_dt);
 
-
-        if(need_create && need_wait){
-            return CacheAction.CREATE_AND_WAIT;
-        }
-        else if(need_create){
-            return CacheAction.GET_AND_CREATE_ASYNC;
-        }
-        else if(need_wait){
-            return CacheAction.WAIT;
-        }
-        else{
-            return CacheAction.GET;
-        }
+        return action;
 
         // //------------- 캐시 생성 & 대기 ---------------
         // if(cacheData.isNew() && !cacheData.asyncNew){
@@ -379,14 +344,14 @@ public class Catcher {
         // return CacheAction.GET;
     }
 
-    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle) {
+    public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncNew, Boolean asyncUpdate, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle) {
         CacheData cacheData = getSetCacheData(key, supplier, refresh_sec, expire_sec, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         if(cacheData == null)
             return null;
         return (T) cacheData.getData();
     }
 
-    public void flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
+    public void _flagStartCreatingCache(String key, int refresh_sec, int expire_sec){
         CacheData cacheData = getCacheData(key);
         if(cacheData == null)
             cacheData = new CacheData(key, null, CacheData.Status.CREATING, refresh_sec, expire_sec, null, null, null);
@@ -437,25 +402,6 @@ public class Catcher {
         }
     }
 
-    public <T> T _createCacheData(String key, Supplier<T> supplier){
-        T result = null;
-
-        //logger.debug("-------- begin create cache / key : " + key + "--------");
-        try{
-            result = supplier.get();
-        }
-        catch(Exception e){
-            endCreatingCache(key);
-            CacheLogger.error(this.getClass(), "error createCacheData / key:" + key);
-            e.printStackTrace();
-        }
-        finally {
-            //logger.debug("-------- end create cache / key : " + key + "--------");
-        }
-
-        return result;
-    }
-
     public CacheData waitCreateCache(String key) {
 
         CacheData cacheData;
@@ -463,25 +409,36 @@ public class Catcher {
         while(true){
             tryCnt++;
             cacheData = getCacheData(key);
-            if(cacheData != null && !cacheData.isCreating()){
+            if(cacheData != null && !cacheData.isBusyNow()){
                 return cacheData;
             }
             //CacheLogger.trace(this.getClass(), "wait for creating cache / key:" + key + " --|");
-            CacheLogger.trace(this.getClass(), "wait for creating cache : " + cacheData);
+            //CacheLogger.trace(this.getClass(), "wait for creating cache : " + cacheData);
+            
 
             if(tryCnt > waitCreateRetryMaxCnt){
                 CacheLogger.error(this.getClass(), "waiting for cache creating overtime / count:" + tryCnt + ", key:" + key + " --|" );
-                flagFinishCreatingCache(cacheData);
+                onCacheError(CacheError.make("wait overtime exception", cacheData));
+                //flagFinishCreatingCache(cacheData);
                 return cacheData;
             }
 
             try{
-                CacheLogger.debug(this.getClass(), "thread [" + Thread.currentThread().getName() + "] sleep (" + waitCreateIntervalMs + "/" + tryCnt + ") waiting for cache creating ");
+                CacheLogger.trace(this.getClass(), "thread [" + Thread.currentThread().getName() + "] sleep (" + waitCreateIntervalMs + "/" + tryCnt + ") waiting for cache creating ");
                 Thread.sleep(waitCreateIntervalMs);
             }
             catch(Exception e){
                 e.printStackTrace();
             }
+        }
+    }
+
+    static public String getLimitCacheKey(String key){
+        if(key.length() > KEY_MAX_LENGTH){
+            return key.substring(0, KEY_MAX_LENGTH-1);
+        }
+        else{
+            return key;
         }
     }
 
@@ -501,7 +458,30 @@ public class Catcher {
         return catcherSignal;
     };
 
-    public CacheData onCacheCreateError(CacheError cacheError){
+    public CacheData onCacheError(CacheError cacheError){
+        CacheData cacheData = cacheError.getCacheData();
+        
+        cacheError.getException().printStackTrace();
+        CacheLogger.error(Catcher.class, cacheError.getException());
+
+        if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.REUSE)){
+            cacheData = extendCacheTime(cacheData);
+            return cacheData;
+        }
+        else if(cacheData.getCacheCreateErrorHandle().equals(CacheCreateErrorHandle.CUSTOM)){
+            cacheData = errorHandleWithCatcherSignal(cacheError);
+            endCreatingCache(cacheData);
+            return cacheData;
+        }
+        else{
+            cacheData.setData(null);
+            cacheData = extendCacheTime(cacheData);
+        }
+
+        return cacheData;
+    }
+
+    public CacheData errorHandleWithCatcherSignal(CacheError cacheError){
         if(catcherSignal != null){
             CacheData handledCacheData = catcherSignal.cacheCreateCustomErrorHandler(cacheError);
             return handledCacheData;

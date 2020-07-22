@@ -14,8 +14,8 @@ public class Main {
 
         //multiThreadTest(catcher1);
         //timeoutTest(catcher2);
-        errorTest(catcher2);
-        //forceRefreshTest();
+        //errorTest(catcher2);
+        forceRefreshTest(catcher2);
     }
 
     static int getCount = 0;
@@ -35,7 +35,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                                }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -52,18 +52,18 @@ public class Main {
 
     static public void timeoutTest(Catcher catcher){
         int count = 0;
-        while(count < 2){
+        while(count < 3){
             Thread request = new Thread(()->{
                 while(true){
                     try{
                         Thread.sleep((int)(Math.random()*1000) + 2000);
                         long st = System.currentTimeMillis();
-                        String value = Common.getSetTest(catcher,"key1", Thread.currentThread().getName(), 10000,
+                        String value = Common.getSetTest(catcher,"key1", Thread.currentThread().getName(), (Math.random() > 0.2 ? 500 : 10000),
                                 ()->{
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                                }, false, false, Catcher.CacheCreateErrorHandle.NULL);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -91,7 +91,7 @@ public class Main {
                                     int i = (int)(Math.random() * 2);
                                     int j = 1/i;
                                     return j;
-                                }, true, false, Catcher.CacheCreateErrorHandle.REUSE);
+                                }, true, true, Catcher.CacheCreateErrorHandle.NULL);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }
@@ -116,14 +116,14 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                    }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-1");
         request1.start();
 
         try{
-            Thread.sleep(1000 * 9);
+            Thread.sleep(1000 * 2);
         }
         catch(Exception e){
             e.printStackTrace();
@@ -136,7 +136,7 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                    }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-2");
@@ -156,7 +156,7 @@ public class Main {
                         getCount++;
                         return getCount;
                         //return 10 / (2 - getCount);
-                    }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                    }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
             long delay = System.currentTimeMillis() - st;
             Common.log("get cache : " + value + " (delay " + delay + ")");
         }, "thread-3");
