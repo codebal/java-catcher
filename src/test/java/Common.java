@@ -73,7 +73,7 @@ public class Common {
         return catcher;
     }
 
-    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncUpdate, boolean asyncNew, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
+    static String getSetTest(Catcher catcher, String key, String callThreadName, int delay, Supplier supplier, boolean asyncNew, boolean asyncUpdate, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle){
         //int refresh_sec = (int)(Math.random() * 3) + 3;
         int refresh_sec = 3;
         CacheData cacheData = catcher.getSetCacheData(key, ()->{
@@ -92,7 +92,7 @@ public class Common {
                 e.printStackTrace();
                 return "error";
             }
-        }, refresh_sec, 100, asyncUpdate, asyncNew, cacheCreateErrorHandle);
+        }, refresh_sec, 100, asyncNew, asyncUpdate, cacheCreateErrorHandle);
         //log("refresh_sec:" + refresh_sec);
         //log(cacheData.toString());
         return cacheData.getData();

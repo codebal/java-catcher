@@ -35,7 +35,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
+                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }

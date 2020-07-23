@@ -152,7 +152,12 @@ public class Catcher {
         CacheData cacheData = new CacheData(key, null, CacheData.Status.NEW, refresh_sec, expire_sec, asyncUpdate, asyncNew, cacheCreateErrorHandle);
         CacheData _oldCacheData = getCacheData(key);
 
+        //System.out.println("-- new chacheData : " + cacheData);
+        //System.out.println("-- old chacheData : " + _oldCacheData);
+
         cacheData.mergeOldCacheData(_oldCacheData);
+        
+        //System.out.println("-- merged chacheData : " + cacheData);
 
         cacheData.initDate(false, true);
 

@@ -130,13 +130,15 @@ public class CacheData implements Serializable {
 
     public void setCreating(boolean creating) {
         initDate(false, true);
+        //System.out.println("setCreating start : " + this.status);
         if(creating)
-            if(isNew())
+            if(isNew() || isNewCreating()) //NEW_CREATING 중에 캐시 생성을 또 시도하려는 경우가 발생하드라.
                 this.status = Status.NEW_CREATING;
             else
                 this.status = Status.CREATING;
         else
             this.status = Status.NORMAL;
+        //System.out.println("setCreating end : " + this.status);
         //this.creating = creating;
     }
 
