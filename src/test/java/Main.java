@@ -23,7 +23,7 @@ public class Main {
     static public void multiThreadTest(Catcher catcher){
 
         int count = 0;
-        while(count < 3){
+        while(count < 100){
             Thread request = new Thread(()->{
                 while(true){
                     try{

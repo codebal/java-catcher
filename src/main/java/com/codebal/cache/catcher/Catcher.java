@@ -21,11 +21,29 @@ public class Catcher {
 
     boolean async = true;
 
-    public enum CacheAction{
+    public enum _CacheAction{
         GET,
         WAIT,
         CREATE_AND_WAIT,
         GET_AND_CREATE_ASYNC
+    }
+
+    public class CacheAction{
+        public boolean create;
+        public boolean wait;
+        public boolean async;
+
+        public CacheAction(boolean create, boolean wait, boolean async){
+            this.create = create;
+            this.wait = wait;
+            this.async = async;
+        }
+
+        @Override
+        public String toString() {
+            return "CacheAction [async=" + async + ", create=" + create + ", wait=" + wait + "]";
+        }
+        
     }
 
     public enum CacheCreateErrorHandle {
@@ -164,86 +182,112 @@ public class Catcher {
         // CacheLogger.debug(this.getClass(), "status : " + cacheData.status);
         // CacheLogger.debug(this.getClass(), "cacheData : " + cacheData);
 
-        boolean needCreate = false;
-        boolean needWait = false;
+        // boolean needCreate = false;
+        // boolean needWait = false;
 
         CacheAction action = getAction(cacheData);
 
-        if(CacheAction.WAIT.equals(action)){
-            needWait = true;
-        }
-        else if(CacheAction.CREATE_AND_WAIT.equals(action) || CacheAction.GET_AND_CREATE_ASYNC.equals(action)){
-            needCreate = true;
+        // if(CacheAction.WAIT.equals(action)){
+        //     needWait = true;
+        // }
+        // else if(CacheAction.CREATE_AND_WAIT.equals(action) || CacheAction.GET_AND_CREATE_ASYNC.equals(action)){
+        //     needCreate = true;
 
-            // if(CacheAction.CREATE_AND_WAIT.equals(action)){ // cacheData is null
-            //     cacheData = newCacheData;
-            // }
-        }
+        //     // if(CacheAction.CREATE_AND_WAIT.equals(action)){ // cacheData is null
+        //     //     cacheData = newCacheData;
+        //     // }
+        // }
 
         //System.out.println(action + " - " + Thread.currentThread().getName());
 
-        if(needCreate){ //캐시 생성을 해야 한다
-            boolean directCreating = false;
+        if(action.create){ //캐시 생성을 해야 한다
+            // boolean directCreating = false;
 
             //System.out.println("sync begin - " + Thread.currentThread().getName());
 
             synchronized (this){
-                //System.out.println("sync 1 - " + Thread.currentThread().getName());
-                //System.out.println(cacheData + "- " + Thread.currentThread().getName());
-                if(cacheData.needForceRefresh()){
-                    //문제가 생겨서 강제로 리프래시 해줘야 한다.
-                    cacheData.setCreating(false);
-                }
-                else{
-                    CacheData currentCacheData = getCacheData(key);
-                    //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
-                    if(currentCacheData != null)
+                CacheData currentCacheData = getCacheData(key);
+                if(currentCacheData != null){
                     cacheData = currentCacheData;
                 }
+                action = getAction(cacheData);
 
-                if(!cacheData.isCreating()){
-                    directCreating = true;
+                //System.out.println("------ 다시 체크 : " + Thread.currentThread().getName());
+
+                if(action.create){
+                    //System.out.println("----- 생성 : " + Thread.currentThread().getName());
                     flagStartCreatingCache(cacheData);
                 }
+                else{
+                    //System.out.println("----- 아니네 패스 - " + Thread.currentThread().getName());
+                }
+
+
+                //System.out.println(cacheData + "- " + Thread.currentThread().getName());
+                // if(cacheData.needForceRefresh()){
+                //     //문제가 생겨서 강제로 리프래시 해줘야 한다.
+                //     cacheData.setCreating(false);
+                // }
+                // else{
+                //     //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
+                //     if(currentCacheData != null)
+                //     cacheData = currentCacheData;
+                // }
+
+                // if(!cacheData.isCreating()){
+                //     directCreating = true;
+                //     flagStartCreatingCache(cacheData);
+                // }
 
                 //System.out.println("sync 2 - " + Thread.currentThread().getName());
             }
 
-            //System.out.println("sync end - " + Thread.currentThread().getName());
-
-            if(directCreating){
-                boolean async = true;
-                if(CacheAction.GET_AND_CREATE_ASYNC.equals(action) && !cacheData.asyncUpdate){ //캐시 리프래시, asyncUpdate = false
-                    async = false;
-                }
-                else if(CacheAction.CREATE_AND_WAIT.equals(action) && !cacheData.asyncNew){ //캐시 신규 생성, asyncNew = false
-                    async = false;
-                }
-
-                if(async){ //비동기 캐시 생성
+            if(action.create){
+                //System.out.println("----- 캐시생성 : " + action);
+                if(action.async){ //비동기 캐시 생성
+                    //System.out.println("----- 캐시생성 비동기 : " + action);
                     createCacheDataAsync(cacheData, supplier);
                 }
                 else{ //동기 캐시 생성
+                    //System.out.println("----- 캐시생성 동기 : " + action);
                     cacheData = createCacheDataSync(cacheData, supplier);
                 }
             }
-            else{
-                action = getAction(cacheData);
-                if(CacheAction.WAIT.equals(action)){
-                    needWait = true;
-                }
-            }
+
+            //System.out.println("sync end - " + Thread.currentThread().getName());
+
+            // if(directCreating){
+            //     // if(CacheAction.GET_AND_CREATE_ASYNC.equals(action) && !cacheData.asyncUpdate){ //캐시 리프래시, asyncUpdate = false
+            //     //     async = false;
+            //     // }
+            //     // else if(CacheAction.CREATE_AND_WAIT.equals(action) && !cacheData.asyncNew){ //캐시 신규 생성, asyncNew = false
+            //     //     async = false;
+            //     // }
+
+            //     if(action.async){ //비동기 캐시 생성
+            //         createCacheDataAsync(cacheData, supplier);
+            //     }
+            //     else{ //동기 캐시 생성
+            //         cacheData = createCacheDataSync(cacheData, supplier);
+            //     }
+            // }
+            // else{
+            //     action = getAction(cacheData);
+            //     // if(CacheAction.WAIT.equals(action)){
+            //     //     needWait = true;
+            //     // }
+            // }
 
         }
 
-        if(needWait){
+        if(action.wait){
             cacheData = waitCreateCache(cacheData.key);
         }
 
         return cacheData;
     }
 
-    public CacheAction getAction(String key){
+    public CacheAction _getAction(String key){
         CacheData cacheData = getCacheData(key);
 
         return getAction(cacheData);
@@ -255,6 +299,7 @@ public class Catcher {
 
         boolean need_create = false;
         boolean need_wait = false;
+        boolean need_async = true;
 
         if(
             cacheData.isNew()
@@ -272,20 +317,16 @@ public class Catcher {
             need_wait = true;
         }
 
-        CacheAction action;
+        if(need_create && need_wait){ //최초 캐시 생성
+            if(!cacheData.asyncNew)
+                need_async = false;
+         }
+        else if(need_create){ //캐시 갱신
+            if(!cacheData.asyncUpdate)
+                need_async = false;
+        }
 
-        if(need_create && need_wait){
-            action = CacheAction.CREATE_AND_WAIT;
-        }
-        else if(need_create){
-            action = CacheAction.GET_AND_CREATE_ASYNC;
-        }
-        else if(need_wait){
-            action = CacheAction.WAIT;
-        }
-        else{
-            action = CacheAction.GET;
-        }
+        CacheAction action = new CacheAction(need_create, need_wait, need_async);
 
         // CacheLogger.trace(this.getClass(), "before action select: " + cacheData);
         // CacheLogger.trace(this.getClass(), "result action : " + action);
