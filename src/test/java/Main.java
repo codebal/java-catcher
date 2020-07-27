@@ -30,14 +30,16 @@ public class Main {
                         Thread.sleep((int)(Math.random()*1000) + 2000);
                         //Thread.sleep(2000);
                         long st = System.currentTimeMillis();
-                        String value = Common.getSetTest(catcher,"key1", Thread.currentThread().getName(), 1300,
+                        int rand = (int)(Math.random() * 3);
+                        String key = "key" + rand;
+                        String value = Common.getSetTest(catcher, key, Thread.currentThread().getName(), 1300,
                                 ()->{
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, true, true, Catcher.CacheCreateErrorHandle.REUSE);
+                                }, false, true, Catcher.CacheCreateErrorHandle.REUSE);
                         long delay = System.currentTimeMillis() - st;
-                        Common.log("get cache : " + value + " (delay " + delay + ")");
+                        Common.log("get cache(" + key + ") : " + value + " (delay " + delay + ")");
                     }
                     catch (Exception e){
                         e.printStackTrace();

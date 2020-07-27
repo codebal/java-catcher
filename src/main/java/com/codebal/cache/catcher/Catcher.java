@@ -463,14 +463,14 @@ public class Catcher {
             
 
             if(tryCnt > waitCreateRetryMaxCnt){
-                CacheLogger.error(this.getClass(), "waiting for cache creating overtime / count:" + tryCnt + ", key:" + key + " --|" );
+                CacheLogger.error(this.getClass(), "waiting for cache(" + key + ") creating overtime / count:" + tryCnt + ", key:" + key + " --|" );
                 onCacheError(CacheError.make("wait overtime exception", cacheData));
                 //flagFinishCreatingCache(cacheData);
                 return cacheData;
             }
 
             try{
-                CacheLogger.trace(this.getClass(), "thread [" + Thread.currentThread().getName() + "] sleep (" + waitCreateIntervalMs + "/" + tryCnt + ") waiting for cache creating ");
+                CacheLogger.trace(this.getClass(), "thread [" + Thread.currentThread().getName() + "] sleep (" + waitCreateIntervalMs + "/" + tryCnt + ") waiting for cache(" + key + ") creating ");
                 Thread.sleep(waitCreateIntervalMs);
             }
             catch(Exception e){
