@@ -12,8 +12,8 @@ public class Main {
 
         catcher2 = Common.getCacherWithSignal();
 
-        multiThreadTest(catcher1);
-        //timeoutTest(catcher2);
+        //multiThreadTest(catcher1);
+        timeoutTest(catcher2);
         //errorTest(catcher2);
         //forceRefreshTest(catcher2);
     }
@@ -65,7 +65,7 @@ public class Main {
                                     getCount++;
                                     return getCount;
                                     //return 10 / (2 - getCount);
-                                }, false, false, Catcher.CacheCreateErrorHandle.NULL);
+                                }, false, false, Catcher.CacheCreateErrorHandle.CUSTOM);
                         long delay = System.currentTimeMillis() - st;
                         Common.log("get cache : " + value + " (delay " + delay + ")");
                     }

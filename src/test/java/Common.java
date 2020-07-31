@@ -57,15 +57,10 @@ public class Common {
             }
 
             @Override
-            public CacheData cacheCreateCustomErrorHandler(CacheError cacheError) {
+            public CacheData customErrorHandler(CacheError cacheError) {
                 log("에러 발생 했구만");
                 cacheError.getCacheData().setData("아 에러났네. 망했네.");
                 return cacheError.getCacheData();
-            }
-
-            @Override
-            public CacheData waitTimeoverHandler(CacheData cacheData) {
-                return cacheData;
             }
         };
 

@@ -93,35 +93,11 @@ public class Catcher {
             e.printStackTrace();
             return null;
         }
-//        key = CacheData.getLimitCacheKey(key);
-//        try{
-//            SerializableDocument couchdata = bucket.get(key, SerializableDocument.class);
-//            if(couchdata == null || couchdata.content() == null){
-//                //logger.debug("--- 캐시없음 : " + key + " ---");
-//                return null;
-//            }
-//            else{
-//                try{
-//                    CacheData cacheData = (CacheData)couchdata.content();
-//                    //logger.debug("--- 캐시있음 : " + key + " ---");
-//                    return cacheData;
-//                }
-//                catch(Exception e){
-//                    showLog("--- 캐시가 있지만 타입이 틀려서 변환 오류 : " + key + " ---");
-//                    e.printStackTrace();
-//                    return null;
-//                }
-//            }
-//        }
-//        catch(Exception e){
-//            showLog("--- 캐시 key 디코드 오류 : " + key + " ---");
-//            e.printStackTrace();
-//            return null;
-//        }
     }
 
 
-    public CacheData updateCacheData(CacheData cacheData, boolean nullable){
+    @Deprecated
+    public CacheData __updateCacheData(CacheData cacheData, boolean nullable){
         CacheData targetCacheData = getCacheData(cacheData.key);
         if(targetCacheData == null)
             targetCacheData = cacheData;
@@ -132,7 +108,6 @@ public class Catcher {
                 targetCacheData.status = cacheData.status;
         }
 
-        //여기 하다가 말았다.
         return cacheData;
     }
 
@@ -143,11 +118,6 @@ public class Catcher {
         else
             return cacheData.getData();
     }
-
-//    public CacheData createCacheDataAsync(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncUpdate, Boolean asyncNew){
-//        CacheData cacheData = new CacheData(key, null, refresh_sec, expire_sec, asyncUpdate, asyncNew);
-//        return createCacheDataAsync(cacheData, supplier);
-//    }
 
     public CacheData createCacheDataSync(CacheData cacheData, Supplier<Object> supplier){
         try{
@@ -182,21 +152,7 @@ public class Catcher {
         // CacheLogger.debug(this.getClass(), "status : " + cacheData.status);
         // CacheLogger.debug(this.getClass(), "cacheData : " + cacheData);
 
-        // boolean needCreate = false;
-        // boolean needWait = false;
-
         CacheAction action = getAction(cacheData);
-
-        // if(CacheAction.WAIT.equals(action)){
-        //     needWait = true;
-        // }
-        // else if(CacheAction.CREATE_AND_WAIT.equals(action) || CacheAction.GET_AND_CREATE_ASYNC.equals(action)){
-        //     needCreate = true;
-
-        //     // if(CacheAction.CREATE_AND_WAIT.equals(action)){ // cacheData is null
-        //     //     cacheData = newCacheData;
-        //     // }
-        // }
 
         //System.out.println(action + " - " + Thread.currentThread().getName());
 
@@ -222,24 +178,6 @@ public class Catcher {
                     //System.out.println("----- 아니네 패스 - " + Thread.currentThread().getName());
                 }
 
-
-                //System.out.println(cacheData + "- " + Thread.currentThread().getName());
-                // if(cacheData.needForceRefresh()){
-                //     //문제가 생겨서 강제로 리프래시 해줘야 한다.
-                //     cacheData.setCreating(false);
-                // }
-                // else{
-                //     //System.out.println("상태바꼈나? / " + currentCacheData + "- " + Thread.currentThread().getName());
-                //     if(currentCacheData != null)
-                //     cacheData = currentCacheData;
-                // }
-
-                // if(!cacheData.isCreating()){
-                //     directCreating = true;
-                //     flagStartCreatingCache(cacheData);
-                // }
-
-                //System.out.println("sync 2 - " + Thread.currentThread().getName());
             }
 
             if(action.create){
@@ -253,30 +191,6 @@ public class Catcher {
                     cacheData = createCacheDataSync(cacheData, supplier);
                 }
             }
-
-            //System.out.println("sync end - " + Thread.currentThread().getName());
-
-            // if(directCreating){
-            //     // if(CacheAction.GET_AND_CREATE_ASYNC.equals(action) && !cacheData.asyncUpdate){ //캐시 리프래시, asyncUpdate = false
-            //     //     async = false;
-            //     // }
-            //     // else if(CacheAction.CREATE_AND_WAIT.equals(action) && !cacheData.asyncNew){ //캐시 신규 생성, asyncNew = false
-            //     //     async = false;
-            //     // }
-
-            //     if(action.async){ //비동기 캐시 생성
-            //         createCacheDataAsync(cacheData, supplier);
-            //     }
-            //     else{ //동기 캐시 생성
-            //         cacheData = createCacheDataSync(cacheData, supplier);
-            //     }
-            // }
-            // else{
-            //     action = getAction(cacheData);
-            //     // if(CacheAction.WAIT.equals(action)){
-            //     //     needWait = true;
-            //     // }
-            // }
 
         }
 
@@ -294,8 +208,6 @@ public class Catcher {
     }
 
     public CacheAction getAction(CacheData cacheData){
-        // boolean action_get = false;
-        // boolean action_createAndWait = false;
 
         boolean need_create = false;
         boolean need_wait = false;
@@ -335,59 +247,6 @@ public class Catcher {
         // CacheLogger.trace(this.getClass(), "cacheData.update_dt: " + cacheData.update_dt);
 
         return action;
-
-        // //------------- 캐시 생성 & 대기 ---------------
-        // if(cacheData.isNew() && !cacheData.asyncNew){
-        //     action_createAndWait = true;
-        // }
-        // else if(cacheData.isNormal() && cacheData.needRefresh() && !cacheData.asyncUpdate){
-        //     action_createAndWait = true;
-        // }
-
-        // if(action_createAndWait){
-        //     return CacheAction.CREATE_AND_WAIT;
-        // }
-
-
-        // //------------- 캐시 갱신 ---------------
-        // if(!cacheData.isCreating() && cacheData.needRefresh())
-        //     need_create = true;
-
-        // if(cacheData.needForceRefresh())
-        //     need_create = true;
-
-        // if(need_create)
-        //     return CacheAction.GET_AND_CREATE_ASYNC;
-
-        // //캐시가 생성중인데 데이터는 없고 asyncNew이 false 일때
-        // if(cacheData.isCreating()){
-        //     if(cacheData.isNew() && !cacheData.asyncNew){
-        //         needWait = true;
-        //     }
-        //     else if(!cacheData.asyncUpdate){
-        //         needWait = true;
-        //     }
-        // }
-
-        // //------------- 캐시 생성 대기 ---------------
-        // if(cacheData.isCreating() && cacheData.asyncUpdate){
-        //     needWait = true;
-        // }
-
-        // if(needWait)
-        //     return CacheAction.WAIT;
-
-
-
-
-        // if(cacheData != null){
-        // }
-        // else{
-        //     return CacheAction.CREATE_AND_WAIT;
-        // }
-
-        // //------------- 캐시만 반환 ---------------
-        // return CacheAction.GET;
     }
 
     public <T> T getSet(String key, Supplier<Object> supplier, Integer refresh_sec, Integer expire_sec, Boolean asyncNew, Boolean asyncUpdate, Catcher.CacheCreateErrorHandle cacheCreateErrorHandle) {
@@ -425,14 +284,6 @@ public class Catcher {
         cacheData.status = CacheData.Status.NORMAL;
         setCacheData(cacheData);
         return cacheData;
-
-        // CacheData newCacheData = null;
-        // if(cacheData != null){
-        //     newCacheData = new CacheData(cacheData.key, cacheData.getData(), CacheData.Status.NORMAL, cacheData.getRefresh_sec(), cacheData.getExpire_sec(), cacheData.asyncUpdate, cacheData.asyncNew, cacheData.cacheCreateErrorHandle);
-        //     setCacheData(newCacheData);
-        // }
-
-        // return newCacheData;
     }
 
     public CacheData extendCacheTime(CacheData cacheData){
@@ -529,7 +380,7 @@ public class Catcher {
 
     public CacheData errorHandleWithCatcherSignal(CacheError cacheError){
         if(catcherSignal != null){
-            CacheData handledCacheData = catcherSignal.cacheCreateCustomErrorHandler(cacheError);
+            CacheData handledCacheData = catcherSignal.customErrorHandler(cacheError);
             return handledCacheData;
         }
         return cacheError.getCacheData();
